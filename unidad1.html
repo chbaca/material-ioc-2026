@@ -1,0 +1,2588 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unidad 1 · Arquitectura de la Computadora — IOC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b1310;
+        --panel: #111e19;
+        --panel-alt: #16261f;
+        --panel-raise: #1b2e26;
+        --line: #25382f;
+        --line-soft: #1c2c25;
+        --copper: #d6a24d;
+        --copper-dim: #8a6c37;
+        --cyan: #6fe7d4;
+        --cyan-dim: #2f5c53;
+        --text: #eaf1ec;
+        --text-muted: #93a89c;
+        --text-faint: #5f7469;
+        --ok: #7cc98a;
+        --bad: #e2725b;
+        --radius: 3px;
+        --serif-mono: "IBM Plex Mono", monospace;
+        --sans: "IBM Plex Sans", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.6;
+        font-size: 16px;
+        background-image:
+          linear-gradient(var(--line-soft) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+        background-size: 48px 48px;
+        background-attachment: fixed;
+      }
+      ::selection {
+        background: var(--copper);
+        color: #111;
+      }
+      a {
+        color: var(--cyan);
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      @media (max-width: 920px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        border-right: 1px solid var(--line);
+        background: linear-gradient(180deg, var(--panel), var(--bg));
+        padding: 22px 0 22px 0;
+        overflow-y: auto;
+      }
+      @media (max-width: 920px) {
+        .sidebar {
+          position: relative;
+          height: auto;
+          border-right: none;
+          border-bottom: 1px solid var(--line);
+        }
+      }
+      .sidebar-brand {
+        padding: 0 20px 18px 20px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 12px;
+      }
+      .sidebar-brand .chip {
+        display: inline-block;
+        font-family: var(--serif-mono);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        color: var(--copper);
+        border: 1px solid var(--copper-dim);
+        border-radius: 2px;
+        padding: 2px 6px;
+        margin-bottom: 8px;
+      }
+      .sidebar-brand h1 {
+        font-size: 17px;
+        margin: 0 0 4px 0;
+        font-family: var(--serif-mono);
+        font-weight: 600;
+      }
+      .sidebar-brand p {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--text-muted);
+      }
+
+      nav.toc {
+        padding: 0 10px;
+      }
+      nav.toc a {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        text-decoration: none;
+        color: var(--text-muted);
+        font-size: 13.5px;
+        padding: 7px 10px;
+        border-radius: 2px;
+        border-left: 2px solid transparent;
+      }
+      nav.toc a .addr {
+        font-family: var(--serif-mono);
+        font-size: 11px;
+        color: var(--text-faint);
+        min-width: 38px;
+      }
+      nav.toc a:hover {
+        color: var(--text);
+        background: var(--panel-alt);
+      }
+      nav.toc a.active {
+        color: var(--cyan);
+        border-left-color: var(--cyan);
+        background: var(--panel-alt);
+      }
+      nav.toc a.active .addr {
+        color: var(--cyan);
+      }
+      nav.toc .group-label {
+        font-family: var(--serif-mono);
+        font-size: 10.5px;
+        color: var(--text-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin: 16px 10px 4px 10px;
+      }
+
+      main {
+        padding: 0 0 80px 0;
+        min-width: 0;
+      }
+
+      .hero {
+        padding: 64px 56px 40px 56px;
+        border-bottom: 1px solid var(--line);
+        position: relative;
+        overflow: hidden;
+      }
+      @media (max-width: 640px) {
+        .hero {
+          padding: 44px 20px 30px 20px;
+        }
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        right: -60px;
+        top: -60px;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(111, 231, 212, 0.1),
+          transparent 70%
+        );
+      }
+      .hero .led {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--serif-mono);
+        font-size: 12px;
+        color: var(--ok);
+        border: 1px solid var(--cyan-dim);
+        padding: 4px 10px;
+        border-radius: 20px;
+        margin-bottom: 22px;
+      }
+      .hero .led i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--ok);
+        box-shadow: 0 0 8px var(--ok);
+        animation: blink 2.4s ease-in-out infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.25;
+        }
+      }
+      .hero h1 {
+        font-family: var(--serif-mono);
+        font-size: clamp(34px, 6vw, 58px);
+        margin: 0 0 6px 0;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        line-height: 1.02;
+      }
+      .hero h1 span {
+        color: var(--copper);
+      }
+      .hero .subtitle {
+        font-size: clamp(16px, 2.2vw, 20px);
+        color: var(--text-muted);
+        max-width: 640px;
+        margin: 14px 0 26px 0;
+      }
+      .hero .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .hero .meta-row .tag {
+        font-family: var(--serif-mono);
+        font-size: 11.5px;
+        color: var(--text-muted);
+        border: 1px solid var(--line);
+        padding: 5px 10px;
+        border-radius: 2px;
+        background: var(--panel);
+      }
+      .addr-strip {
+        display: flex;
+        gap: 2px;
+        margin-top: 32px;
+        font-family: var(--serif-mono);
+        font-size: 11px;
+        color: var(--text-faint);
+        flex-wrap: wrap;
+      }
+      .addr-strip span {
+        border: 1px solid var(--line-soft);
+        padding: 3px 7px;
+        border-radius: 2px;
+      }
+
+      section.unit {
+        padding: 52px 56px;
+        border-bottom: 1px solid var(--line);
+        scroll-margin-top: 20px;
+      }
+      @media (max-width: 640px) {
+        section.unit {
+          padding: 36px 20px;
+        }
+      }
+      section.unit:last-of-type {
+        border-bottom: none;
+      }
+
+      .sec-head {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        margin-bottom: 26px;
+      }
+      .sec-head .num {
+        font-family: var(--serif-mono);
+        font-size: 13px;
+        color: var(--copper);
+        border: 1px solid var(--copper-dim);
+        border-radius: 2px;
+        padding: 3px 8px;
+        white-space: nowrap;
+        margin-top: 6px;
+      }
+      .sec-head h2 {
+        font-family: var(--serif-mono);
+        font-size: clamp(22px, 3vw, 30px);
+        margin: 0;
+        font-weight: 600;
+      }
+      .sec-head p.lede {
+        color: var(--text-muted);
+        margin: 8px 0 0 0;
+        max-width: 680px;
+        font-size: 15px;
+      }
+
+      .content {
+        max-width: 760px;
+      }
+      .content.wide {
+        max-width: 920px;
+      }
+      .content h3 {
+        font-family: var(--serif-mono);
+        font-size: 17px;
+        margin: 34px 0 12px 0;
+        color: var(--text);
+      }
+      .content h4 {
+        font-family: var(--serif-mono);
+        font-size: 14.5px;
+        margin: 22px 0 8px 0;
+        color: var(--cyan);
+      }
+      .content p {
+        margin: 0 0 14px 0;
+        color: #d7e2db;
+      }
+      .content ul,
+      .content ol {
+        margin: 0 0 14px 0;
+        padding-left: 22px;
+        color: #d7e2db;
+      }
+      .content li {
+        margin-bottom: 6px;
+      }
+
+      .term {
+        font-family: var(--serif-mono);
+        background: var(--panel-alt);
+        color: var(--cyan);
+        padding: 1px 6px;
+        border-radius: 2px;
+        font-size: 0.92em;
+        border: 1px solid var(--line);
+      }
+
+      .callout {
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--copper);
+        background: var(--panel);
+        padding: 16px 18px;
+        border-radius: 2px;
+        margin: 18px 0;
+        font-size: 14.5px;
+        color: #dfe9e2;
+      }
+      .callout strong {
+        color: var(--copper);
+      }
+      .callout.cyan {
+        border-left-color: var(--cyan);
+      }
+      .callout.cyan strong {
+        color: var(--cyan);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin: 20px 0;
+      }
+      @media (max-width: 680px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin: 20px 0;
+      }
+      @media (max-width: 780px) {
+        .grid-3 {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 520px) {
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin: 20px 0;
+      }
+      @media (max-width: 780px) {
+        .grid-4 {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 18px 20px;
+      }
+      .card h4 {
+        margin-top: 0;
+      }
+      .card.ok {
+        border-top: 2px solid var(--ok);
+      }
+      .card.bad {
+        border-top: 2px solid var(--bad);
+      }
+      .card ul {
+        padding-left: 18px;
+        margin-bottom: 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 18px 0;
+        font-size: 14px;
+      }
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 9px 12px;
+        text-align: left;
+      }
+      th {
+        background: var(--panel-alt);
+        font-family: var(--serif-mono);
+        font-weight: 500;
+        font-size: 12.5px;
+        color: var(--copper);
+      }
+      td {
+        color: #d7e2db;
+      }
+      tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.015);
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      figure {
+        margin: 26px 0;
+        padding: 18px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+      }
+      figure img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 2px;
+        background: #000;
+      }
+      figcaption {
+        font-size: 12.5px;
+        color: var(--text-muted);
+        margin-top: 10px;
+        font-family: var(--serif-mono);
+      }
+
+      .photo-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin: 20px 0;
+      }
+      @media (max-width: 680px) {
+        .photo-row {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .photo-row figure {
+        margin: 0;
+        padding: 10px;
+      }
+      .photo-row img {
+        aspect-ratio: 4/3;
+        object-fit: cover;
+      }
+
+      .steps {
+        counter-reset: step;
+        list-style: none;
+        padding-left: 0;
+        margin: 18px 0;
+      }
+      .steps li {
+        counter-increment: step;
+        position: relative;
+        padding: 10px 0 10px 42px;
+        border-bottom: 1px dashed var(--line-soft);
+        color: #d7e2db;
+      }
+      .steps li:last-child {
+        border-bottom: none;
+      }
+      .steps li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 8px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid var(--copper-dim);
+        color: var(--copper);
+        font-family: var(--serif-mono);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .pyramid-wrap {
+        display: flex;
+        justify-content: center;
+        margin: 24px 0;
+      }
+      code.inline {
+        font-family: var(--serif-mono);
+        background: var(--panel-alt);
+        padding: 1px 5px;
+        border-radius: 2px;
+        font-size: 0.9em;
+      }
+
+      .qa-toolbar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+      }
+      .btn {
+        font-family: var(--serif-mono);
+        font-size: 13px;
+        color: var(--bg);
+        background: var(--copper);
+        border: none;
+        padding: 10px 16px;
+        border-radius: 2px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .btn:hover {
+        background: #e8b869;
+      }
+      .btn.secondary {
+        background: transparent;
+        color: var(--cyan);
+        border: 1px solid var(--cyan-dim);
+      }
+      .btn.secondary:hover {
+        background: var(--panel-alt);
+      }
+      .score-pill {
+        font-family: var(--serif-mono);
+        font-size: 13px;
+        color: var(--text-muted);
+        border: 1px solid var(--line);
+        padding: 9px 14px;
+        border-radius: 2px;
+        background: var(--panel);
+      }
+      .score-pill b {
+        color: var(--ok);
+      }
+
+      .spotlight {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 30px 32px;
+        margin-bottom: 30px;
+        min-height: 120px;
+      }
+      .spotlight .cat {
+        font-family: var(--serif-mono);
+        font-size: 11.5px;
+        color: var(--copper);
+        border: 1px solid var(--copper-dim);
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 2px;
+        margin-bottom: 14px;
+      }
+      .spotlight .qtext {
+        font-size: 19px;
+        margin: 0 0 18px 0;
+        color: var(--text);
+      }
+      .spotlight .options {
+        display: grid;
+        gap: 10px;
+      }
+      .opt {
+        text-align: left;
+        background: var(--panel-alt);
+        border: 1px solid var(--line);
+        color: #d7e2db;
+        padding: 12px 16px;
+        border-radius: 2px;
+        cursor: pointer;
+        font-size: 14.5px;
+        font-family: var(--sans);
+        transition: background 0.15s;
+      }
+      .opt:hover {
+        background: var(--panel-raise);
+      }
+      .opt.correct {
+        border-color: var(--ok);
+        background: rgba(124, 201, 138, 0.12);
+        color: var(--ok);
+      }
+      .opt.incorrect {
+        border-color: var(--bad);
+        background: rgba(226, 114, 91, 0.12);
+        color: var(--bad);
+      }
+      .opt[disabled] {
+        cursor: default;
+      }
+      .explain {
+        margin-top: 16px;
+        padding: 14px 16px;
+        background: var(--panel-alt);
+        border-left: 3px solid var(--cyan);
+        font-size: 14px;
+        color: #dfe9e2;
+        display: none;
+        border-radius: 2px;
+      }
+      .explain.show {
+        display: block;
+      }
+
+      .debate-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+      .debate-item {
+        background: var(--panel);
+        border: 1px dashed var(--line);
+        border-left: 3px solid var(--cyan);
+        padding: 14px 18px;
+        border-radius: 2px;
+        font-size: 14.5px;
+        color: #dfe9e2;
+      }
+
+      footer {
+        padding: 30px 56px;
+        color: var(--text-faint);
+        font-size: 12.5px;
+        font-family: var(--serif-mono);
+      }
+      @media (max-width: 640px) {
+        footer {
+          padding: 24px 20px;
+        }
+      }
+
+      .mobile-toggle {
+        display: none;
+      }
+      @media (max-width: 920px) {
+        .mobile-toggle {
+          display: block;
+          width: 100%;
+          text-align: left;
+          background: var(--panel);
+          color: var(--text);
+          border: none;
+          border-bottom: 1px solid var(--line);
+          padding: 14px 20px;
+          font-family: var(--serif-mono);
+          font-size: 13px;
+        }
+        nav.toc {
+          display: none;
+        }
+        .sidebar.open nav.toc {
+          display: block;
+        }
+      }
+      /* ---------- site-wide navigation (added) ---------- */
+      .site-nav{
+        padding:14px 20px 18px 20px;
+        border-bottom:1px solid var(--line);
+        margin-bottom:12px;
+      }
+      .site-nav-home{
+        display:inline-flex; align-items:center; gap:6px;
+        font-family:var(--serif-mono); font-size:12.5px; color:var(--cyan);
+        text-decoration:none; margin-bottom:12px;
+      }
+      .site-nav-home:hover{ text-decoration:underline; }
+      .site-nav-pager{
+        display:grid; grid-template-columns:1fr 1fr; gap:8px;
+        font-family:var(--serif-mono); font-size:11.5px;
+      }
+      .site-nav-pager a{
+        color:var(--text-muted); text-decoration:none; border:1px solid var(--line);
+        border-radius:2px; padding:6px 8px; background:var(--panel-alt);
+        transition:border-color .15s, color .15s;
+      }
+      .site-nav-pager a:hover{ border-color:var(--cyan); color:var(--cyan); }
+      .site-nav-pager a.next{ text-align:right; }
+      .site-nav-pager .disabled{
+        color:var(--text-faint); border:1px dashed var(--line-soft); border-radius:2px;
+        padding:6px 8px; text-align:right;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <span class="chip"
+            >Instalación y Organización de la Computadora - TIG - Año 2026 -
+            Facultad Regional Orán</span
+          >
+          <h1>Unidad 1</h1>
+          <p>Arquitectura de la Computadora</p>
+        </div>
+        <div class="site-nav">
+          <a class="site-nav-home" href="index.html">&#8962; Indice de la materia</a>
+          <div class="site-nav-pager">
+            <span></span>
+            <a class="next" href="unidad2.html">Unidad 2 &rarr;</a>
+          </div>
+        </div>
+        <button class="mobile-toggle" id="mobileToggle">
+          ☰ Ver índice de contenidos
+        </button>
+        <nav class="toc" id="toc">
+          <div class="group-label">Fundamentos</div>
+          <a href="#s1"
+            ><span class="addr">1.1</span> Arquitectura y Von Neumann</a
+          >
+          <a href="#s2"
+            ><span class="addr">1.2</span> Clasificación de computadoras</a
+          >
+          <div class="group-label">Microcomputadoras</div>
+          <a href="#s3"><span class="addr">1.3</span> Microcomputadoras y PC</a>
+          <div class="group-label">Electrónica</div>
+          <a href="#s4"
+            ><span class="addr">1.4</span> Nociones de electrónica</a
+          >
+          <a href="#s5"><span class="addr">1.5</span> Fuente de alimentación</a>
+          <div class="group-label">Actividad</div>
+          <a href="#s6"><span class="addr">✎</span> Preguntas para la clase</a>
+        </nav>
+      </aside>
+
+      <main>
+        <div class="hero">
+          <span class="led"><i></i> CPU · BOOT</span>
+          <h1>UNIDAD 1<br /><span>Arquitectura de la Computadora</span></h1>
+          <p class="subtitle">
+            Instalación y Organización de la Computadora — el modelo de Von
+            Neumann, la clasificación de las computadoras, la evolución de la PC
+            y las nociones básicas de electrónica que sostienen todo el
+            hardware.
+          </p>
+          <div class="meta-row">
+            <span class="tag">Tecnicatura en Informática de Gestión</span>
+            <span class="tag"
+              >Universidad Nacional de Salta — Facultad Regional Orán</span
+            >
+          </div>
+          <div class="addr-strip">
+            <span>CPU</span><span>RAM</span><span>ROM</span><span>E/S</span
+            ><span>BUS</span><span>ATX</span><span>Ω</span><span>V</span
+            ><span>A</span><span>W</span>
+          </div>
+        </div>
+
+        <!-- ===================== 1.1 ARQUITECTURA / VON NEUMANN ===================== -->
+        <section class="unit" id="s1">
+          <div class="sec-head">
+            <span class="num">1.1</span>
+            <div>
+              <h2>Arquitectura de la computadora</h2>
+              <p class="lede">
+                El modelo conceptual que comparten desde una supercomputadora
+                hasta el celular que tenés en el bolsillo.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <p>
+              La <span class="term">arquitectura de computadoras</span> es el
+              diseño conceptual y la estructura operacional fundamental de un
+              sistema de computadoras: un modelo y una descripción funcional de
+              los requerimientos e implementaciones de diseño para las distintas
+              partes de una computadora, con especial interés en cómo la
+              <strong>CPU</strong> trabaja internamente y accede a las
+              direcciones de memoria.
+            </p>
+
+            <h3>1.1.1 — Modelo de Von Neumann</h3>
+            <p>
+              Desde una supercomputadora hasta un dispositivo móvil, todos
+              responden al
+              <span class="term">modelo de Von Neumann</span> (también llamado
+              <em>arquitectura Princeton</em>), descripto en 1945 por el
+              matemático y físico John Von Neumann y otros, en el primer
+              borrador de un informe sobre el EDVAC.
+            </p>
+
+            <figure>
+              <svg
+                viewBox="0 0 620 220"
+                width="100%"
+                style="max-width: 600px; margin: 0 auto; display: block"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g font-family="IBM Plex Mono" font-size="13" fill="#eaf1ec">
+                  <rect
+                    x="10"
+                    y="30"
+                    width="150"
+                    height="60"
+                    fill="none"
+                    stroke="#93a89c"
+                  />
+                  <text x="85" y="55" text-anchor="middle" font-size="12">
+                    Dispositivos
+                  </text>
+                  <text x="85" y="72" text-anchor="middle" font-size="12">
+                    de Entrada
+                  </text>
+
+                  <rect
+                    x="235"
+                    y="15"
+                    width="150"
+                    height="90"
+                    fill="none"
+                    stroke="#6fe7d4"
+                    stroke-width="2"
+                  />
+                  <text x="310" y="50" text-anchor="middle" font-size="12">
+                    Unidad Central
+                  </text>
+                  <text x="310" y="66" text-anchor="middle" font-size="12">
+                    de Proceso
+                  </text>
+                  <text
+                    x="310"
+                    y="82"
+                    text-anchor="middle"
+                    font-size="12"
+                    fill="#6fe7d4"
+                  >
+                    (CPU)
+                  </text>
+
+                  <rect
+                    x="460"
+                    y="30"
+                    width="150"
+                    height="60"
+                    fill="none"
+                    stroke="#93a89c"
+                  />
+                  <text x="535" y="55" text-anchor="middle" font-size="12">
+                    Dispositivos
+                  </text>
+                  <text x="535" y="72" text-anchor="middle" font-size="12">
+                    de Salida
+                  </text>
+
+                  <rect
+                    x="235"
+                    y="150"
+                    width="150"
+                    height="55"
+                    fill="none"
+                    stroke="#d6a24d"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="310"
+                    y="182"
+                    text-anchor="middle"
+                    font-size="12"
+                    fill="#d6a24d"
+                  >
+                    Memoria
+                  </text>
+
+                  <line
+                    x1="160"
+                    y1="60"
+                    x2="235"
+                    y2="60"
+                    stroke="#93a89c"
+                    marker-end="url(#ah)"
+                  />
+                  <line
+                    x1="385"
+                    y1="60"
+                    x2="460"
+                    y2="60"
+                    stroke="#93a89c"
+                    marker-end="url(#ah)"
+                  />
+                  <line
+                    x1="310"
+                    y1="105"
+                    x2="310"
+                    y2="150"
+                    stroke="#d6a24d"
+                    marker-end="url(#ah)"
+                  />
+                  <line
+                    x1="330"
+                    y1="150"
+                    x2="330"
+                    y2="105"
+                    stroke="#d6a24d"
+                    marker-end="url(#ah)"
+                  />
+                </g>
+              </svg>
+              <figcaption>
+                Modelo de Von Neumann: la CPU intercambia datos con los
+                periféricos (entrada/salida) y con la memoria principal.
+              </figcaption>
+            </figure>
+
+            <div class="grid-2">
+              <div class="card">
+                <h4>CPU</h4>
+                <p style="margin: 0">
+                  Ejecuta los programas para procesar los datos que llegan a la
+                  computadora. El intercambio de datos se realiza con los
+                  periféricos y con la memoria.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Memoria principal</h4>
+                <p style="margin: 0">
+                  Almacena temporalmente los programas que se ejecutan y los
+                  datos que se procesan.
+                </p>
+              </div>
+            </div>
+            <p>
+              <strong>Periféricos:</strong> pueden ser de entrada, salida o
+              entrada/salida; según otro criterio, también se clasifican en
+              periféricos de almacenamiento y periféricos de comunicaciones. La
+              computadora recibe y envía información a través de los
+              periféricos, por medio de <span class="term">buses</span>.
+            </p>
+
+            <figure>
+              <svg
+                viewBox="0 0 600 190"
+                width="100%"
+                style="max-width: 560px; margin: 0 auto; display: block"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g font-family="IBM Plex Mono" font-size="12" fill="#eaf1ec">
+                  <rect
+                    x="15"
+                    y="55"
+                    width="100"
+                    height="80"
+                    fill="none"
+                    stroke="#6fe7d4"
+                    stroke-width="2"
+                  />
+                  <text x="65" y="100" text-anchor="middle">CPU</text>
+
+                  <rect
+                    x="420"
+                    y="20"
+                    width="165"
+                    height="150"
+                    fill="none"
+                    stroke="#d6a24d"
+                    stroke-width="2"
+                  />
+                  <text x="502" y="42" text-anchor="middle" fill="#d6a24d">
+                    Memoria
+                  </text>
+                  <rect
+                    x="440"
+                    y="55"
+                    width="125"
+                    height="40"
+                    fill="none"
+                    stroke="#93a89c"
+                  />
+                  <text x="502" y="79" text-anchor="middle" font-size="11">
+                    Programas
+                  </text>
+                  <rect
+                    x="440"
+                    y="110"
+                    width="125"
+                    height="40"
+                    fill="none"
+                    stroke="#93a89c"
+                  />
+                  <text x="502" y="134" text-anchor="middle" font-size="11">
+                    Datos
+                  </text>
+
+                  <line
+                    x1="115"
+                    y1="70"
+                    x2="420"
+                    y2="70"
+                    stroke="#93a89c"
+                    marker-end="url(#ah2)"
+                  />
+                  <text
+                    x="265"
+                    y="63"
+                    text-anchor="middle"
+                    font-size="10"
+                    fill="#93a89c"
+                  >
+                    Bus de datos
+                  </text>
+
+                  <line
+                    x1="115"
+                    y1="95"
+                    x2="420"
+                    y2="95"
+                    stroke="#93a89c"
+                    marker-end="url(#ah3)"
+                  />
+                  <text
+                    x="265"
+                    y="112"
+                    text-anchor="middle"
+                    font-size="10"
+                    fill="#93a89c"
+                  >
+                    Bus de direcciones
+                  </text>
+
+                  <line
+                    x1="115"
+                    y1="120"
+                    x2="420"
+                    y2="120"
+                    stroke="#93a89c"
+                    marker-end="url(#ah4)"
+                  />
+                  <text
+                    x="265"
+                    y="140"
+                    text-anchor="middle"
+                    font-size="10"
+                    fill="#93a89c"
+                  >
+                    Bus de control
+                  </text>
+                </g>
+              </svg>
+              <figcaption>
+                Los tres buses que conectan la CPU con la memoria: datos,
+                direcciones y control.
+              </figcaption>
+            </figure>
+
+            <h4>Los tres conceptos fundamentales del modelo</h4>
+            <ul>
+              <li>
+                <strong>Programa almacenado:</strong> tanto los programas como
+                los datos se almacenan en la memoria principal durante la
+                ejecución.
+              </li>
+              <li>
+                <strong>Direccionamiento único:</strong> cada celda de memoria
+                tiene una dirección única.
+              </li>
+              <li>
+                <strong>Ejecución secuencial:</strong> cada programa se ejecuta
+                en secuencia, comenzando por la primera instrucción salvo que
+                existan instrucciones especiales; para cambiar esa secuencia se
+                usa un comando de <em>control de transferencia</em>.
+              </li>
+            </ul>
+
+            <h4>Implementación del modelo en una PC</h4>
+            <div class="grid-3">
+              <div class="card">
+                <h4>CPU</h4>
+                <p style="margin: 0">El microprocesador.</p>
+              </div>
+              <div class="card">
+                <h4>Memoria</h4>
+                <p style="margin: 0">Módulo de memoria RAM + ROM Bios.</p>
+              </div>
+              <div class="card">
+                <h4>Periféricos</h4>
+                <p style="margin: 0">Teclado, mouse, discos, etc.</p>
+              </div>
+            </div>
+            <p>
+              Un dispositivo móvil sigue el mismo esquema: dispone de una CPU,
+              una memoria y un sistema de entrada/salida.
+            </p>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Personal_computer%2C_exploded_6.svg"
+                  alt="Componentes de una PC"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Componentes de una PC de escritorio</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Smartphone_teardown.jpg"
+                  alt="Componentes de un celular"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Componentes de un celular</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/ENIAC.jpg"
+                  alt="Computadora ENIAC"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>ENIAC: computadora a bulbos de vacío</figcaption>
+              </figure>
+            </div>
+
+            <h3>1.1.2 — Evolución de las computadoras</h3>
+            <p>
+              Las primeras computadoras se construyeron con
+              <strong>bulbos de vacío</strong>: ocupaban galerías completas,
+              consumían muchísima energía y requerían grandes equipos de aire
+              acondicionado. Con el tiempo, el tubo de vacío fue reemplazado por
+              el <strong>transistor</strong>, lo que redujo el tamaño y el
+              consumo eléctrico y aumentó la fiabilidad.
+            </p>
+            <p>
+              Con el desarrollo de la electrónica se avanzó en la
+              <strong>miniaturización</strong>, dando lugar a los circuitos
+              integrados de pequeña, mediana, gran y muy gran escala. De ahí
+              surgieron los microprocesadores y el mundo de las
+              microcomputadoras. Hoy los equipos portátiles y los dispositivos
+              móviles se desarrollan de forma masiva.
+            </p>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/UNIVAC_I_at_the_Census_Bureau_with_two_operators.jpg"
+                  alt="UNIVAC-1 1953"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>UNIVAC-1 (1953)</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Vacuum_Tube_Computer_-_GPN-2000-001881.jpg"
+                  alt="Computadora a válvulas"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Interior de una computadora a válvulas</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Transistor-die-KSY34-2.jpg"
+                  alt="Transistor"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>
+                  El transistor reemplazó al tubo de vacío
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 1.2 CLASIFICACIÓN ===================== -->
+        <section class="unit" id="s2">
+          <div class="sec-head">
+            <span class="num">1.2</span>
+            <div>
+              <h2>Clasificación de computadoras</h2>
+              <p class="lede">
+                Desde supercomputadoras hasta tarjetas inteligentes
+                descartables: todo el espectro de tamaños y propósitos.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <p>
+              Las computadoras se clasifican según su
+              <strong>capacidad de procesamiento</strong> (supercomputadoras,
+              macrocomputadoras/mainframes/servidores, microcomputadoras —PC,
+              portátiles, móviles—, computadoras embebidas y computadoras
+              desechables) y según su <strong>aplicación</strong> (propósito
+              general o propósito específico).
+            </p>
+
+            <h3>1.2.1 — Supercomputadoras</h3>
+            <p>
+              Una <span class="term">supercomputadora</span> está conformada por
+              un conjunto de computadoras poderosas unidas entre sí para
+              aumentar su potencia de trabajo y rendimiento, usada con fines
+              específicos. Hoy se prefiere hablar de "computadora de alta
+              prestación" o "ambiente de cómputo de alto rendimiento". Su
+              rendimiento se mide en tera o peta FLOPS (operaciones de punto
+              flotante por segundo) o superiores.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>Prefijo métrico</th>
+                  <th>Símbolo</th>
+                  <th>Potencia</th>
+                </tr>
+                <tr>
+                  <td>Kilo</td>
+                  <td>k</td>
+                  <td>10³</td>
+                </tr>
+                <tr>
+                  <td>Mega</td>
+                  <td>M</td>
+                  <td>10⁶</td>
+                </tr>
+                <tr>
+                  <td>Giga</td>
+                  <td>G</td>
+                  <td>10⁹</td>
+                </tr>
+                <tr>
+                  <td>Tera</td>
+                  <td>T</td>
+                  <td>10¹²</td>
+                </tr>
+                <tr>
+                  <td>Peta</td>
+                  <td>P</td>
+                  <td>10¹⁵</td>
+                </tr>
+                <tr>
+                  <td>Exa</td>
+                  <td>E</td>
+                  <td>10¹⁸</td>
+                </tr>
+                <tr>
+                  <td>Zetta</td>
+                  <td>Z</td>
+                  <td>10²¹</td>
+                </tr>
+                <tr>
+                  <td>Yotta</td>
+                  <td>Y</td>
+                  <td>10²⁴</td>
+                </tr>
+              </table>
+            </div>
+
+            <p>
+              Ranking TOP500 de supercomputadoras (junio 2023):
+              <strong>Frontier</strong> (HPE Cray EX, EE. UU.), el primer
+              sistema en superar 1 ExaFlop/s; <strong>Fugaku</strong> (Japón),
+              <strong>LUMI</strong> (Finlandia),
+              <strong>Leonardo</strong> (Italia), <strong>Summit</strong> y
+              <strong>Sierra</strong> (EE. UU.),
+              <strong>Sunway TaihuLight</strong> (China),
+              <strong>Perlmutter</strong>, <strong>Selene</strong> (NVIDIA) y
+              <strong>Tianhe-2A</strong> (China).
+            </p>
+
+            <div class="callout">
+              <strong>El Summit (OLCF-4):</strong> puesto en marcha el 8 de
+              junio de 2018, con 200 petaflops de velocidad. Combina 28.000 GPUs
+              Nvidia y 9.000 procesadores IBM (37.000 procesadores en 4.608
+              servidores), refrigerado con 15.140 litros de agua por minuto,
+              conectado por casi 300 metros de fibra óptica. Su tamaño equivale
+              a 2 canchas de tenis y su peso, al de un avión comercial. Se usa
+              para investigación en bioquímica, biología y detección de
+              enfermedades.
+            </div>
+
+            <h4>Supercomputadoras en Argentina</h4>
+            <p>
+              En 2022, Argentina compró una nueva supercomputadora (Lenovo) para
+              el Servicio Meteorológico Nacional: <strong>15,3 Pflops</strong>,
+              4 racks, 2° puesto en América Latina y 82° en el mundo, con un
+              consumo de 230 KW. El 90% de su capacidad se destina al Sistema
+              Científico Nacional (CONICET, universidades, institutos).
+              Reemplaza a la actual <strong>Huayra Muyu</strong> (2019, 370
+              Tflops). Otro sistema nacional es <strong>Tupac</strong>, un
+              clúster del CONICET dedicado a resolver modelos de simulación de
+              alto rendimiento.
+            </p>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Summit_Supercomputer_at_ORNL.jpg"
+                  alt="Supercomputadora Summit"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Summit (ORNL, EE. UU.)</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Fugaku_supercomputer.jpg"
+                  alt="Supercomputadora Fugaku"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Fugaku (Japón)</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Data_center_server_racks.jpg"
+                  alt="Racks de servidores"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Racks de un centro de datos</figcaption>
+              </figure>
+            </div>
+
+            <h3>1.2.2 — Servidores</h3>
+            <p>
+              Un <span class="term">servidor</span> es una computadora diseñada
+              específicamente para procesar información y programas, y
+              distribuirlos entre los equipos conectados a él. Están pensados
+              para soportar mayores cargas de trabajo y estar siempre
+              disponibles; llevan su propio sistema operativo, distinto al de un
+              equipo de escritorio.
+            </p>
+            <div class="grid-3">
+              <div class="card">
+                <h4>Torre</h4>
+                <p style="margin: 0">
+                  Aspecto de PC convencional, se apoya en el piso o una mesa.
+                  Habitual cuando hay uno o pocos equipos, donde el espacio no
+                  es decisivo.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Rack</h4>
+                <p style="margin: 0">
+                  Se instalan en forma horizontal con ancho estándar de
+                  <strong>19"</strong>, para ubicarlos en armarios rack.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Blade</h4>
+                <p style="margin: 0">
+                  Soluciones de alta densidad: el máximo número de equipos en el
+                  menor volumen posible. Típico en grandes empresas y centros de
+                  datos.
+                </p>
+              </div>
+            </div>
+
+            <h3>1.2.3 — Computadoras embebidas</h3>
+            <p>
+              Son parte de un dispositivo mayor (que suele incluir otro hardware
+              o partes mecánicas), de propósito específico: realizan una tarea
+              puntual dentro de un sistema más grande. Ejemplo: un automóvil
+              tiene múltiples computadoras embebidas, cada una a cargo de un
+              subsistema (frenos, airbag, control de puertas, etc.).
+            </p>
+            <p>
+              Sus programas se llaman <span class="term">firmware</span> y se
+              guardan en ROM o memorias Flash. Corren con recursos limitados:
+              poca memoria, pantallas y teclados pequeños o inexistentes.
+            </p>
+            <p>
+              <strong>Plataformas típicas:</strong> Arduino Uno, Raspberry Pi,
+              Intel Galileo, Altera DE1-SoC, NodeMCU ESP32, entre otras.
+              <strong>Ámbitos de uso:</strong> electrónica de consumo, industria
+              (SCADA), automotriz, defensa, aeroespacial, salud, oficina y
+              seguridad.
+            </p>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Arduino_Uno_-_R3.jpg"
+                  alt="Arduino Uno"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Arduino Uno</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Raspberry_Pi_4_Model_B_-_Side.jpg"
+                  alt="Raspberry Pi"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Raspberry Pi</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Car_ECU.jpg"
+                  alt="Computadora embebida automotriz"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Computadoras embebidas en un automóvil</figcaption>
+              </figure>
+            </div>
+
+            <h3>1.2.4 — Computadoras desechables</h3>
+            <p>
+              Del tamaño de aproximadamente 1 mm², se instalan en dispositivos
+              que luego de un tiempo se descartan. El ejemplo típico es la
+              <span class="term">tarjeta inteligente (smart card)</span>: no
+              tiene batería, la energía la suministra el lector. Existen
+              tarjetas de memoria, microprocesadas (identificación, billetera
+              virtual) y criptográficas (cifrado y firma digital).
+            </p>
+            <p>Según la norma ISO 7816, contienen:</p>
+            <div class="grid-2">
+              <div class="card">
+                <ul>
+                  <li><strong>CPU:</strong> de 8 bits, 5V de alimentación</li>
+                  <li>
+                    <strong>ROM:</strong> 10 a 30 KB (sistema operativo,
+                    rutinas, algoritmos)
+                  </li>
+                  <li>
+                    <strong>EEPROM:</strong> 2 a 16 KB (datos del usuario,
+                    claves, aplicaciones)
+                  </li>
+                </ul>
+              </div>
+              <div class="card">
+                <ul>
+                  <li>
+                    <strong>RAM (opcional):</strong> memoria de trabajo volátil
+                  </li>
+                  <li>
+                    <strong>E/S:</strong> pin de transmisión serial (interfaz),
+                    a veces con pines adicionales USB
+                  </li>
+                  <li>
+                    <strong>Contacto o sin contacto:</strong> transferencia por
+                    contactos físicos o por campos electromagnéticos
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 1.3 MICROCOMPUTADORAS ===================== -->
+        <section class="unit" id="s3">
+          <div class="sec-head">
+            <span class="num">1.3</span>
+            <div>
+              <h2>Microcomputadoras</h2>
+              <p class="lede">
+                La evolución de la PC, sus componentes, las portátiles y las
+                herramientas para desarmarlas y mantenerlas.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <h3>1.3.1 — Evolución de las computadoras personales</h3>
+            <p>
+              La primera generación (años setenta) era mucho menos potente que
+              las computadoras empresariales de la época, y solía usarse para
+              juegos. Fue el lanzamiento de la hoja de cálculo
+              <strong>VisiCalc</strong> (primero para Apple II, luego para IBM
+              PC) lo que convirtió a la microcomputadora en una verdadera
+              herramienta de trabajo. Su bajo costo la hizo masiva en los años
+              ochenta, tanto en hogares como en oficinas.
+            </p>
+            <p>
+              En los noventa, el poder de las PC creció radicalmente, borrando
+              la frontera con las computadoras de varios usuarios (mainframes).
+              Hoy, las computadoras de gama alta se distinguen de las personales
+              por su fiabilidad y su capacidad multitarea, no por la potencia
+              bruta de la CPU.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>Período</th>
+                  <th>Hitos destacados</th>
+                </tr>
+                <tr>
+                  <td>1960–1970</td>
+                  <td>IBM 360, PDP-8 (Digital Equipment)</td>
+                </tr>
+                <tr>
+                  <td>1971–1980</td>
+                  <td>
+                    Kenbak I (primera PC comercial), Altair 8800, Apple I y
+                    Apple II, Commodore PET 2001, IBM PC (procesador 8088)
+                  </td>
+                </tr>
+                <tr>
+                  <td>1980–1990</td>
+                  <td>
+                    Commodore VIC-20, IBM PC/XT con disco duro de 10 MB, clones
+                    de IBM PC, procesadores 8086/80286/80486, IBM PS/2
+                  </td>
+                </tr>
+                <tr>
+                  <td>1990–2000</td>
+                  <td>
+                    Multimedia PC, AMD 386, Pentium/Pentium Pro/MMX/II/III,
+                    Apple Newton (PDA), iMac, AMD Athlon
+                  </td>
+                </tr>
+                <tr>
+                  <td>2000–actualidad</td>
+                  <td>
+                    Pentium IV, Core 2 Duo, procesadores multinúcleo, portátiles
+                    diversas, dispositivos móviles inteligentes
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Altair_8800_Computer.jpg"
+                  alt="Altair 8800"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Altair 8800</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Apple_I_Computer.jpg"
+                  alt="Apple I"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Apple I</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/IBM_PC_5150.jpg"
+                  alt="IBM PC"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>IBM PC</figcaption>
+              </figure>
+            </div>
+
+            <h3>1.3.2 — Tipos de computadoras portátiles</h3>
+            <div class="grid-2">
+              <div class="card">
+                <h4>Notebooks</h4>
+                <p style="margin: 0">
+                  Rendimiento equivalente a una PC de escritorio; soportan
+                  software exigente (CAD, edición de video/audio, diseño
+                  gráfico). Pantallas típicas: 14", 15" y 17". Mismos sistemas
+                  operativos que una PC.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Ultrabooks</h4>
+                <p style="margin: 0">
+                  Similares a las notebooks pero con estructura ultra delgada.
+                  Excelente rendimiento y autonomía de batería. No incluyen
+                  unidad óptica.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Netbooks</h4>
+                <p style="margin: 0">
+                  Extensión de la PC de escritorio, con procesador y RAM de gama
+                  media, sin unidad óptica. Pantallas de 7", 10.1" y 11".
+                  Estructura muy compacta.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Tablets</h4>
+                <p style="margin: 0">
+                  Mayores que un smartphone, con pantalla táctil (simple o
+                  multitáctil), sin teclado ni mouse físicos. Factor de forma
+                  "slate", de 7" a 12".
+                </p>
+              </div>
+            </div>
+            <p>
+              <strong>Dispositivos móviles:</strong> teléfonos inteligentes que
+              combinan características de PDA y tablet. Sistemas operativos:
+              Android, iOS, Windows Phone, Symbian OS, entre otros. Un
+              dispositivo móvil se caracteriza por: tamaño reducido,
+              conectividad, memoria limitada y capacidad de
+              procesamiento/almacenamiento. Cuatro rasgos definitorios:
+              <strong>movilidad</strong>, <strong>reducido tamaño</strong>,
+              <strong>capacidad de comunicación inalámbrica</strong> y
+              <strong>capacidad de interacción con las personas</strong>.
+            </p>
+            <p>
+              Dentro de la familia de dispositivos móviles también entran los
+              <strong>wearables</strong> (smartwatches, smartglasses,
+              smartbands), smartphones, tablets, e-readers y laptops.
+            </p>
+
+            <h3>1.3.3 — Componentes de una computadora personal</h3>
+            <p>
+              Una PC modelo torre está compuesta por:
+              <strong>Unidad Principal</strong>, dispositivos de entrada y
+              dispositivos de salida. En el modelo
+              <strong>All in One</strong> (todo en uno), la Unidad Principal
+              viene integrada con dispositivos de salida (pantalla, parlantes) y
+              de entrada (webcam, micrófono).
+            </p>
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>Modelo</th>
+                  <th>Salida integrada</th>
+                  <th>Entrada integrada</th>
+                </tr>
+                <tr>
+                  <td>All in One</td>
+                  <td>Pantalla, parlantes</td>
+                  <td>Webcam, micrófono</td>
+                </tr>
+                <tr>
+                  <td>Notebook / Netbook</td>
+                  <td>Pantalla, parlantes</td>
+                  <td>Teclado, touchpad, webcam, micrófono</td>
+                </tr>
+                <tr>
+                  <td>Tablet / móvil</td>
+                  <td>Parlantes</td>
+                  <td>Touchpad, webcam, micrófono</td>
+                </tr>
+              </table>
+            </div>
+
+            <h3>1.3.4 — Componentes de la Unidad Principal</h3>
+            <div class="grid-2">
+              <div class="card">
+                <ul>
+                  <li>Tapas y armazón (chasis)</li>
+                  <li>Fuente de alimentación</li>
+                  <li>Unidades de almacenamiento</li>
+                  <li>Placa madre (componentes principales)</li>
+                </ul>
+              </div>
+              <div class="card">
+                <ul>
+                  <li>Tarjetas controladoras</li>
+                  <li>Sistema de ventilación</li>
+                  <li>Cables de datos</li>
+                  <li>Cables auxiliares (panel frontal)</li>
+                </ul>
+              </div>
+            </div>
+
+            <h4>En una notebook/netbook</h4>
+            <p>
+              Carcasa, pantalla LCD, teclado, placa madre, almacenamiento
+              secundario (disco rígido o SSD), tarjeta de red WiFi, sistema de
+              enfriamiento, batería y cargador/fuente.
+            </p>
+            <h4>En una tablet o dispositivo móvil</h4>
+            <p>
+              Placa madre, parlantes, cámara, carcasa, pantalla LCD, batería,
+              cargador/fuente y, en el caso del móvil, almacenamiento en
+              tarjetas de memoria.
+            </p>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Computer_case_interior.jpg"
+                  alt="Interior de un gabinete de PC"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Interior de la Unidad Principal (torre)</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Disassembled_laptop.jpg"
+                  alt="Notebook desarmada"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Notebook desarmada</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Smartphone_internals.jpg"
+                  alt="Interior de un smartphone"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Interior de un dispositivo móvil</figcaption>
+              </figure>
+            </div>
+
+            <h3>1.3.8 — Herramientas para el montaje y mantenimiento</h3>
+            <div class="grid-3">
+              <div class="card">
+                <h4>Desmontaje</h4>
+                <p style="margin: 0">
+                  Kit de destornilladores (ej. 8 en 1) con linterna.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Limpieza</h4>
+                <p style="margin: 0">
+                  Pincel, paño de tela, alcohol etílico, removedor de partículas
+                  para superficies sensibles.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Descarga estática</h4>
+                <p style="margin: 0">Pulsera antiestática o similar.</p>
+              </div>
+              <div class="card">
+                <h4>Inspección</h4>
+                <p style="margin: 0">Lupa y linterna.</p>
+              </div>
+              <div class="card" style="grid-column: span 2">
+                <h4>Pasta térmica del microprocesador</h4>
+                <p style="margin: 0">
+                  Kit removedor de pasta térmica (uno quita los restos, otro
+                  limpia la superficie sin corroer aluminio/cobre) y grasa
+                  siliconada nueva.
+                </p>
+              </div>
+            </div>
+
+            <h4>Pasos para desensamblar un equipo PC</h4>
+            <ol class="steps">
+              <li>Desenchufar la alimentación eléctrica de la PC.</li>
+              <li>
+                Equiparar cargas eléctricas: usar la pulsera antiestática o
+                frotar el chasis unos segundos.
+              </li>
+              <li>Sacar las tapas laterales.</li>
+              <li>
+                Desconectar la alimentación de los componentes y retirar la
+                fuente.
+              </li>
+              <li>Desmontar las unidades de almacenamiento.</li>
+              <li>Sacar las tarjetas controladoras.</li>
+              <li>Desconectar todos los cables de datos de la placa madre.</li>
+              <li>Desmontar la placa madre.</li>
+              <li>Desmontar el sistema de enfriamiento del procesador.</li>
+            </ol>
+
+            <h4>Recomendaciones de limpieza por componente</h4>
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>Componente</th>
+                  <th>Elemento recomendado</th>
+                </tr>
+                <tr>
+                  <td>Chasis</td>
+                  <td>Pincel, paño de tela</td>
+                </tr>
+                <tr>
+                  <td>Coolers</td>
+                  <td>Pincel, paño</td>
+                </tr>
+                <tr>
+                  <td>Disipadores</td>
+                  <td>Pincel, aire comprimido</td>
+                </tr>
+                <tr>
+                  <td>Placa madre</td>
+                  <td>Aire comprimido, con cuidado</td>
+                </tr>
+                <tr>
+                  <td>Pasta térmica del microprocesador</td>
+                  <td>Paño suave + producto líquido (kit removedor)</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 1.4 ELECTRÓNICA ===================== -->
+        <section class="unit" id="s4">
+          <div class="sec-head">
+            <span class="num">1.4</span>
+            <div>
+              <h2>Nociones elementales de electrónica</h2>
+              <p class="lede">
+                Lo mínimo indispensable sobre átomos, corriente y componentes
+                para entender cómo funciona el hardware por dentro.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <h3>El átomo</h3>
+            <p>
+              El <span class="term">átomo</span> es la unidad constituyente más
+              pequeña de la materia que conserva las propiedades de un elemento
+              químico. Su tamaño promedio ronda los 100 pm. Cada átomo tiene un
+              núcleo (protones + neutrones) y uno o más electrones a su
+              alrededor; más del 99,94% de la masa del átomo está en el núcleo.
+            </p>
+
+            <figure>
+              <svg
+                viewBox="0 0 400 220"
+                width="100%"
+                style="max-width: 360px; margin: 0 auto; display: block"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g>
+                  <ellipse
+                    cx="200"
+                    cy="110"
+                    rx="170"
+                    ry="50"
+                    fill="none"
+                    stroke="#6fe7d4"
+                    transform="rotate(20 200 110)"
+                  />
+                  <ellipse
+                    cx="200"
+                    cy="110"
+                    rx="170"
+                    ry="50"
+                    fill="none"
+                    stroke="#d6a24d"
+                    transform="rotate(-20 200 110)"
+                  />
+                  <ellipse
+                    cx="200"
+                    cy="110"
+                    rx="170"
+                    ry="50"
+                    fill="none"
+                    stroke="#93a89c"
+                    transform="rotate(90 200 110)"
+                  />
+                  <circle cx="200" cy="110" r="18" fill="#e2725b" />
+                  <circle cx="90" cy="70" r="7" fill="#6fe7d4" />
+                  <circle cx="330" cy="150" r="7" fill="#d6a24d" />
+                  <circle cx="200" cy="35" r="7" fill="#93a89c" />
+                </g>
+                <g font-family="IBM Plex Mono" font-size="11" fill="#eaf1ec">
+                  <text x="200" y="115" text-anchor="middle" font-size="10">
+                    núcleo
+                  </text>
+                  <text x="70" y="55" text-anchor="middle" fill="#6fe7d4">
+                    e⁻
+                  </text>
+                </g>
+              </svg>
+              <figcaption>
+                Modelo simplificado del átomo: núcleo (protones + neutrones) y
+                electrones en órbita.
+              </figcaption>
+            </figure>
+
+            <div class="grid-3">
+              <div class="card ok">
+                <h4>Protón</h4>
+                <p style="margin: 0">Carga eléctrica positiva.</p>
+              </div>
+              <div class="card">
+                <h4>Neutrón</h4>
+                <p style="margin: 0">Sin carga neta (neutro).</p>
+              </div>
+              <div class="card bad">
+                <h4>Electrón</h4>
+                <p style="margin: 0">Carga eléctrica negativa.</p>
+              </div>
+            </div>
+            <p>
+              Si el número de protones y electrones es igual, el átomo es
+              eléctricamente neutro. Un <span class="term">ión</span> es una
+              partícula cargada eléctricamente. La
+              <strong>ionización</strong> es el fenómeno por el cual un átomo
+              gana o pierde electrones: si gana electrones se forma un
+              <strong>anión</strong> (carga negativa); si los pierde, un
+              <strong>catión</strong> (carga positiva).
+            </p>
+
+            <h3>1.4.1 — Ley de Ohm</h3>
+            <p>
+              La <span class="term">electricidad</span> es el movimiento de
+              electrones a través de un medio conductor.
+            </p>
+            <div class="grid-2">
+              <div class="card">
+                <h4>Intensidad de corriente (I)</h4>
+                <p style="margin: 0">
+                  Cantidad de electrones que circulan por un punto del circuito
+                  cada segundo. Unidad: <strong>Ampere (A)</strong>. Puede ser
+                  continua o alterna.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Voltaje / Tensión (V)</h4>
+                <p style="margin: 0">
+                  Fuerza eléctrica con la que son impulsados los electrones a
+                  través de un conductor. Unidad: <strong>Volt (V)</strong>.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Resistencia (R)</h4>
+                <p style="margin: 0">
+                  Oposición al flujo de electrones al moverse por un conductor.
+                  Unidad: <strong>Ohm (Ω)</strong>.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Potencia (P)</h4>
+                <p style="margin: 0">
+                  Energía entregada o absorbida por un elemento en un momento
+                  dado. Unidad: <strong>Watt (W)</strong>. En corriente
+                  continua: P = V × I.
+                </p>
+              </div>
+            </div>
+
+            <div class="callout cyan">
+              <strong>Corriente alterna vs. continua:</strong> la red eléctrica
+              que llega a hogares e industrias entrega
+              <strong>corriente alterna</strong> (invierte su polaridad 50 o 60
+              veces por segundo, según el país). Los equipos electrónicos
+              —incluida la PC— funcionan con
+              <strong>corriente continua</strong>, de valor fijo y polaridad
+              constante. Por eso hace falta una fuente de alimentación que la
+              convierta.
+            </div>
+
+            <div class="pyramid-wrap">
+              <svg
+                viewBox="0 0 260 220"
+                width="100%"
+                style="max-width: 220px"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g font-family="IBM Plex Mono" font-size="18" fill="#eaf1ec">
+                  <polygon
+                    points="130,15 20,180 240,180"
+                    fill="none"
+                    stroke="#d6a24d"
+                    stroke-width="2"
+                  />
+                  <line x1="20" y1="180" x2="240" y2="180" stroke="#d6a24d" />
+                  <line x1="75" y1="127" x2="185" y2="127" stroke="#25382f" />
+                  <text x="130" y="90" text-anchor="middle" fill="#6fe7d4">
+                    V
+                  </text>
+                  <text
+                    x="75"
+                    y="165"
+                    text-anchor="middle"
+                    fill="#e2725b"
+                    font-size="16"
+                  >
+                    I
+                  </text>
+                  <text
+                    x="185"
+                    y="165"
+                    text-anchor="middle"
+                    fill="#93a89c"
+                    font-size="16"
+                  >
+                    R
+                  </text>
+                </g>
+              </svg>
+            </div>
+            <div class="grid-3">
+              <div class="card">
+                <p style="margin: 0; text-align: center">
+                  <code class="inline">V = I × R</code>
+                </p>
+              </div>
+              <div class="card">
+                <p style="margin: 0; text-align: center">
+                  <code class="inline">I = V / R</code>
+                </p>
+              </div>
+              <div class="card">
+                <p style="margin: 0; text-align: center">
+                  <code class="inline">R = V / I</code>
+                </p>
+              </div>
+            </div>
+
+            <h3>1.4.2 — Componentes electrónicos</h3>
+            <p>
+              Son los dispositivos que forman parte de un circuito electrónico.
+              Se encapsulan en material cerámico, metálico o plástico, y
+              terminan en dos o más terminales o patillas metálicas, diseñadas
+              para soldarse a un circuito impreso.
+            </p>
+            <div class="grid-4">
+              <div class="card">
+                <p style="margin: 0">Circuito integrado</p>
+              </div>
+              <div class="card">
+                <p style="margin: 0">Transistor (potencia / baja potencia)</p>
+              </div>
+              <div class="card">
+                <p style="margin: 0">
+                  Diodo / diodo Zener / diodo LED / fotodiodo
+                </p>
+              </div>
+              <div class="card">
+                <p style="margin: 0">Display de 7 segmentos</p>
+              </div>
+              <div class="card">
+                <p style="margin: 0">Capacitor (fijo y variable)</p>
+              </div>
+              <div class="card"><p style="margin: 0">Potenciómetro</p></div>
+              <div class="card"><p style="margin: 0">Resistor</p></div>
+              <div class="card">
+                <p style="margin: 0">Bobina, relé y fusible</p>
+              </div>
+            </div>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Electronic_component_Resistors.jpg"
+                  alt="Resistores"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Resistores</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Electrolytic_capacitor.jpg"
+                  alt="Capacitor"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Capacitor</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Transistors-in-package.jpg"
+                  alt="Transistores"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Transistores</figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 1.5 FUENTE DE ALIMENTACIÓN ===================== -->
+        <section class="unit" id="s5">
+          <div class="sec-head">
+            <span class="num">1.5</span>
+            <div>
+              <h2>Fuente de alimentación</h2>
+              <p class="lede">
+                El componente que convierte la corriente alterna de la red en la
+                corriente continua que necesita cada parte de la computadora.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <p>
+              La función de una
+              <span class="term">fuente de alimentación</span> es convertir la
+              tensión alterna en tensión continua, con el valor apropiado para
+              cada componente interno, mediante capacitores, diodos,
+              transformadores y transistores. Este proceso de
+              <strong>rectificar</strong> y <strong>estabilizar</strong> la
+              corriente es indispensable, ya que los equipos electrónicos no
+              pueden trabajar directamente con corriente alterna.
+            </p>
+
+            <h3>1.5.1 — Fuentes ATX (PC de escritorio)</h3>
+            <p>
+              Manejan potencias eléctricas típicas de 300W, 350W, 400W, 480W,
+              500W, 630W, 1200W y hasta 1350W.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>Conector</th>
+                  <th>Uso</th>
+                </tr>
+                <tr>
+                  <td>Mini molex (BERG)</td>
+                  <td>Unidades de disquete (histórico)</td>
+                </tr>
+                <tr>
+                  <td>Molex universal</td>
+                  <td>
+                    Discos duros IDE, unidades ópticas, placas de video,
+                    sistemas de refrigeración
+                  </td>
+                </tr>
+                <tr>
+                  <td>SATA (energía)</td>
+                  <td>Discos y unidades con interfaz SATA</td>
+                </tr>
+                <tr>
+                  <td>PCIe 8 pines (separable a 6)</td>
+                  <td>Tarjetas gráficas de alto consumo</td>
+                </tr>
+                <tr>
+                  <td>PCIe 6 pines</td>
+                  <td>Tarjetas gráficas de consumo medio</td>
+                </tr>
+                <tr>
+                  <td>8 pines (12V)</td>
+                  <td>Alimentación de la placa base / CPU</td>
+                </tr>
+                <tr>
+                  <td>ATX2 24 pines</td>
+                  <td>Conector principal de la placa base</td>
+                </tr>
+              </table>
+            </div>
+            <p>
+              <strong>Tensiones principales y su uso:</strong> 12V (motores y
+              transformación a otros niveles), 5V (procesamiento de datos,
+              ventiladores, USB) y 3,3V (procesamiento de datos y
+              transformación). Código de colores de los cables:
+              <strong
+                >amarillo = 12V, rojo = 5V, naranja = 3,3V, negro =
+                tierra</strong
+              >.
+            </p>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/ATX_power_supply.jpg"
+                  alt="Fuente ATX"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Fuente ATX para PC de escritorio</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Molex_connector.jpg"
+                  alt="Conector Molex"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Conector Molex</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/ATX_24pin_connector.jpg"
+                  alt="Conector ATX 24 pines"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Conector ATX2 de 24 pines</figcaption>
+              </figure>
+            </div>
+
+            <h3>1.5.2 — Fuentes de computadoras All in One y servidores</h3>
+            <p>
+              En una computadora <strong>Todo en uno</strong>, la fuente es
+              externa. Su potencia se calcula como el producto entre tensión e
+              intensidad: <code class="inline">P = V × I</code>. Ejemplo: 19V ×
+              4,74A = 90,06 W → se necesita una fuente de 90W. Otras potencias
+              habituales: 90W, 120W, 130W.
+            </p>
+            <p>
+              En <strong>servidores</strong>, las fuentes suelen tener formato
+              Rack y frecuentemente son <strong>redundantes</strong>: existen
+              dos fuentes totalmente independientes, una de respaldo por si la
+              otra falla, algo poco común en las fuentes ATX convencionales. Se
+              usan en sistemas de control de acceso, monitoreo centralizado y
+              sistemas de energía centralizados de alta potencia (amplificadores
+              de señal, estaciones de carga, calefacción industrial, tratamiento
+              de aguas, etc.).
+            </p>
+
+            <h3>1.5.3 y 1.5.4 — Fuentes de portátiles, tablets y móviles</h3>
+            <div class="grid-2">
+              <div class="card">
+                <h4>Notebooks / netbooks</h4>
+                <p style="margin: 0">
+                  Ejemplo: 3,5A a 18,5V → 64,75W, por lo que se necesita una
+                  fuente de <strong>65W</strong>. Otros valores habituales: 40W,
+                  66W, 90W, 120W.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Tablets y dispositivos móviles</h4>
+                <p style="margin: 0">
+                  Cargadores universales típicos: entrada 100–240V ~ 50/60Hz,
+                  salida <strong>5V a 2A</strong> (pin fino o micro USB).
+                </p>
+              </div>
+            </div>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Laptop_charger.jpg"
+                  alt="Cargador de notebook"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Cargador/fuente de notebook</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/USB_charger.jpg"
+                  alt="Cargador USB de celular"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Cargador de celular/tablet (5V)</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Server_rack_power_supplies.jpg"
+                  alt="Fuentes de servidor en rack"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>
+                  Fuentes redundantes en un rack de servidor
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== Q&A ===================== -->
+        <section class="unit" id="s6">
+          <div class="sec-head">
+            <span class="num">✎</span>
+            <div>
+              <h2>Preguntas para la clase</h2>
+              <p class="lede">
+                Espacio de participación: usá el modo "pregunta al azar" para
+                proyectar una consigna a la vez.
+              </p>
+            </div>
+          </div>
+
+          <div class="content wide">
+            <div class="qa-toolbar">
+              <button class="btn" id="btnRandom">Nueva pregunta al azar</button>
+              <button class="btn secondary" id="btnReset">
+                Reiniciar puntaje
+              </button>
+              <span class="score-pill"
+                >Aciertos de la clase: <b id="scoreVal">0</b> /
+                <span id="scoreTotal">0</span></span
+              >
+            </div>
+
+            <div class="spotlight" id="spotlight">
+              <span class="cat">Elegí una consigna</span>
+              <p class="qtext">
+                Tocá "Nueva pregunta al azar" para empezar la ronda de preguntas
+                con el curso.
+              </p>
+            </div>
+
+            <h3 style="margin-top: 40px">Para debatir en grupo</h3>
+            <div class="debate-list" id="debateList"></div>
+          </div>
+        </section>
+
+        <footer>
+          Instalación y Organización de la Computadora — Tecnicatura en
+          Informática de Gestión (Plan 2007) · Facultad Regional Orán, UNSa ·
+          Material de cátedra
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      /* ---------------- scrollspy ---------------- */
+      const links = document.querySelectorAll("nav.toc a");
+      const sections = [...links].map((l) =>
+        document.querySelector(l.getAttribute("href")),
+      );
+      function onScroll() {
+        let idx = 0;
+        const y = window.scrollY + 140;
+        sections.forEach((s, i) => {
+          if (s && s.offsetTop <= y) idx = i;
+        });
+        links.forEach((l) => l.classList.remove("active"));
+        if (links[idx]) links[idx].classList.add("active");
+      }
+      window.addEventListener("scroll", onScroll);
+      onScroll();
+
+      /* ---------------- mobile nav toggle ---------------- */
+      const mobileToggle = document.getElementById("mobileToggle");
+      if (mobileToggle) {
+        mobileToggle.addEventListener("click", () => {
+          document.getElementById("sidebar").classList.toggle("open");
+        });
+      }
+
+      /* ---------------- Q&A data ---------------- */
+      const quiz = [
+        {
+          cat: "Von Neumann",
+          q: "¿En qué año fue descripto el modelo de Von Neumann y en el marco de qué informe?",
+          opts: [
+            "1945, informe sobre el EDVAC",
+            "1936, la máquina de Turing",
+            "1950, el informe Manhattan",
+            "1965, la ley de Moore",
+          ],
+          correct: 0,
+          exp: "John Von Neumann describió esta arquitectura en 1945, en el primer borrador de un informe sobre el EDVAC.",
+        },
+        {
+          cat: "Von Neumann",
+          q: "¿Cuáles son los tres conceptos fundamentales del modelo de Von Neumann?",
+          opts: [
+            "Multitarea, virtualización y caché",
+            "Programa almacenado, dirección única por celda y ejecución secuencial",
+            "Buses PCIe, USB y SATA",
+            "Entrada, salida y almacenamiento",
+          ],
+          correct: 1,
+          exp: "El modelo se basa en el programa almacenado (datos e instrucciones en memoria), una dirección única por celda de memoria, y la ejecución secuencial de instrucciones.",
+        },
+        {
+          cat: "Von Neumann",
+          q: "En la implementación del modelo de Von Neumann en una PC, ¿qué compone la 'memoria'?",
+          opts: [
+            "Sólo la RAM",
+            "RAM y ROM Bios",
+            "Sólo el disco duro",
+            "La caché del procesador",
+          ],
+          correct: 1,
+          exp: "En una PC, la memoria del modelo de Von Neumann está formada por el módulo de RAM y la ROM Bios.",
+        },
+        {
+          cat: "Buses",
+          q: "¿Qué bus transporta las instrucciones para leer o escribir en una celda específica de memoria?",
+          opts: [
+            "Bus de datos",
+            "Bus de direcciones",
+            "Bus de control",
+            "Bus USB",
+          ],
+          correct: 1,
+          exp: "El bus de direcciones transporta la dirección de la celda de memoria que se quiere leer o escribir.",
+        },
+        {
+          cat: "Clasificación",
+          q: "¿Qué unidad se usa habitualmente para medir el rendimiento de una supercomputadora?",
+          opts: [
+            "MHz",
+            "Flops (operaciones de punto flotante por segundo)",
+            "RPM",
+            "Bytes por segundo",
+          ],
+          correct: 1,
+          exp: "El rendimiento de las supercomputadoras se mide típicamente en tera o petaflops (o superiores).",
+        },
+        {
+          cat: "Servidores",
+          q: "¿Qué tipo de formato de servidor se usa para lograr la máxima densidad de equipos en el menor volumen posible?",
+          opts: ["Torre", "Rack", "Blade", "Desktop"],
+          correct: 2,
+          exp: "Los servidores Blade están pensados para soluciones de alta densidad, ubicando el máximo número de máquinas en el menor espacio.",
+        },
+        {
+          cat: "Embebidas",
+          q: "¿Cómo se llama el software que corre en una computadora embebida?",
+          opts: ["Driver", "Firmware", "Kernel", "Bootloader"],
+          correct: 1,
+          exp: "El software de una computadora embebida se llama firmware y se almacena en ROM o memoria Flash.",
+        },
+        {
+          cat: "Desechables",
+          q: "¿De dónde obtiene la energía una tarjeta inteligente (smart card)?",
+          opts: [
+            "De una batería interna",
+            "Del lector de tarjetas",
+            "De un cable USB",
+            "De un panel solar",
+          ],
+          correct: 1,
+          exp: "Las tarjetas inteligentes no tienen batería propia; la energía la suministra el lector de tarjetas.",
+        },
+        {
+          cat: "Evolución PC",
+          q: "¿Qué aplicación se considera clave para convertir a la microcomputadora en una herramienta de trabajo?",
+          opts: [
+            "Microsoft Word",
+            "La hoja de cálculo VisiCalc",
+            "El navegador Netscape",
+            "El sistema operativo MS-DOS",
+          ],
+          correct: 1,
+          exp: "VisiCalc, lanzada primero para Apple II y luego para IBM PC, fue la aplicación que convirtió a la PC en una herramienta de trabajo seria.",
+        },
+        {
+          cat: "Portátiles",
+          q: "¿Qué tipo de computadora portátil se caracteriza por ser ultra delgada y no incluir unidad óptica?",
+          opts: ["Netbook", "Ultrabook", "Tablet", "Notebook estándar"],
+          correct: 1,
+          exp: "Las ultrabooks son equipos similares a las notebooks pero con estructura ultra delgada y sin unidad óptica.",
+        },
+        {
+          cat: "Dispositivos móviles",
+          q: "¿Cuáles son las cuatro características esenciales de un dispositivo móvil?",
+          opts: [
+            "Precio, marca, color y peso",
+            "Movilidad, tamaño reducido, comunicación inalámbrica e interacción con las personas",
+            "RAM, ROM, CPU y GPU",
+            "WiFi, Bluetooth, NFC y GPS",
+          ],
+          correct: 1,
+          exp: "Las cuatro características esenciales son: movilidad, reducido tamaño, capacidad de comunicación inalámbrica y capacidad de interacción con las personas.",
+        },
+        {
+          cat: "Herramientas",
+          q: "¿Para qué se usa una pulsera antiestática al desarmar una PC?",
+          opts: [
+            "Para sujetar tornillos",
+            "Para equiparar cargas eléctricas y evitar dañar componentes",
+            "Para medir voltaje",
+            "Para limpiar el polvo",
+          ],
+          correct: 1,
+          exp: "La pulsera antiestática equipara las cargas eléctricas del cuerpo con el equipo, evitando descargas que dañen los componentes sensibles.",
+        },
+        {
+          cat: "Electrónica",
+          q: "¿Qué partícula subatómica tiene carga eléctrica negativa?",
+          opts: ["Protón", "Neutrón", "Electrón", "Fotón"],
+          correct: 2,
+          exp: "El electrón tiene carga eléctrica negativa; el protón, positiva; y el neutrón es eléctricamente neutro.",
+        },
+        {
+          cat: "Ley de Ohm",
+          q: "Según la Ley de Ohm, ¿cómo se calcula la resistencia (R) de un circuito?",
+          opts: ["R = V × I", "R = V / I", "R = I / V", "R = P / V"],
+          correct: 1,
+          exp: "La Ley de Ohm establece que R = V / I (resistencia = voltaje dividido intensidad de corriente).",
+        },
+        {
+          cat: "Corriente",
+          q: "¿Qué tipo de corriente entrega la red eléctrica domiciliaria?",
+          opts: [
+            "Corriente continua",
+            "Corriente alterna",
+            "Corriente estática",
+            "Corriente pulsante",
+          ],
+          correct: 1,
+          exp: "La red eléctrica suministra corriente alterna, que invierte su polaridad varias veces por segundo; los equipos electrónicos necesitan corriente continua.",
+        },
+        {
+          cat: "Fuente de alimentación",
+          q: "¿Cuál es la función principal de la fuente de alimentación de una PC?",
+          opts: [
+            "Enfriar el procesador",
+            "Convertir la tensión alterna en tensión continua",
+            "Almacenar datos",
+            "Conectar la red WiFi",
+          ],
+          correct: 1,
+          exp: "La fuente de alimentación rectifica y estabiliza la corriente alterna de la red, convirtiéndola en corriente continua para los componentes.",
+        },
+        {
+          cat: "Fuente ATX",
+          q: "¿Qué color de cable corresponde típicamente a los 12V en una fuente ATX?",
+          opts: ["Rojo", "Negro", "Amarillo", "Naranja"],
+          correct: 2,
+          exp: "El código de colores habitual es: amarillo = 12V, rojo = 5V, naranja = 3,3V y negro = tierra.",
+        },
+        {
+          cat: "Servidores redundantes",
+          q: "¿Qué característica distingue a una fuente de alimentación redundante en un servidor?",
+          opts: [
+            "Es más liviana",
+            "Tiene dos fuentes independientes, una de respaldo",
+            "Sólo funciona con corriente continua",
+            "No necesita ventilación",
+          ],
+          correct: 1,
+          exp: "Una fuente redundante cuenta con dos fuentes de alimentación totalmente independientes: si una falla, la otra sigue operando.",
+        },
+      ];
+
+      const debate = [
+        "¿Por qué creen que el modelo de Von Neumann sigue vigente casi 80 años después, incluso en dispositivos tan distintos como un celular y una supercomputadora?",
+        "Analizando las 10 supercomputadoras más potentes: ¿qué tendencias observan en su ubicación geográfica y en la arquitectura de hardware que utilizan (CPU + GPU)?",
+        "¿Qué ventajas y desventajas tiene una computadora embebida frente a una PC de propósito general para una tarea específica, como el control de un electrodoméstico?",
+        "Pensando en la evolución de la PC (de los bulbos de vacío a los procesadores multinúcleo), ¿qué factor creen que impulsó más los cambios: la miniaturización, el costo o el software?",
+        "¿Por qué una fuente de alimentación mal dimensionada (de menor potencia que la requerida) puede afectar la estabilidad de todo un equipo, aunque el resto de los componentes sean de buena calidad?",
+      ];
+
+      let score = 0,
+        total = 0;
+      document.getElementById("scoreTotal").textContent = quiz.length;
+
+      let bag = [];
+      function refillBag() {
+        bag = quiz.map((_, i) => i);
+      }
+      refillBag();
+
+      function renderSpotlight(i) {
+        const item = quiz[i];
+        const box = document.getElementById("spotlight");
+        box.innerHTML = `
+    <span class="cat">${item.cat}</span>
+    <p class="qtext">${item.q}</p>
+    <div class="options">
+      ${item.opts.map((o, oi) => `<button class="opt" data-oi="${oi}">${o}</button>`).join("")}
+    </div>
+    <div class="explain" id="explainBox">${item.exp}</div>
+  `;
+        box.querySelectorAll(".opt").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const chosen = parseInt(btn.dataset.oi);
+            box.querySelectorAll(".opt").forEach((b) => (b.disabled = true));
+            if (chosen === item.correct) {
+              btn.classList.add("correct");
+              score++;
+            } else {
+              btn.classList.add("incorrect");
+              box
+                .querySelectorAll(".opt")
+                [item.correct].classList.add("correct");
+            }
+            total++;
+            document.getElementById("scoreVal").textContent = score;
+            document.getElementById("explainBox").classList.add("show");
+          });
+        });
+      }
+
+      document.getElementById("btnRandom").addEventListener("click", () => {
+        if (bag.length === 0) refillBag();
+        const pick = Math.floor(Math.random() * bag.length);
+        const idx = bag.splice(pick, 1)[0];
+        renderSpotlight(idx);
+      });
+
+      document.getElementById("btnReset").addEventListener("click", () => {
+        score = 0;
+        total = 0;
+        document.getElementById("scoreVal").textContent = 0;
+      });
+
+      /* debate list */
+      const debateList = document.getElementById("debateList");
+      debate.forEach((d) => {
+        const el = document.createElement("div");
+        el.className = "debate-item";
+        el.textContent = d;
+        debateList.appendChild(el);
+      });
+    </script>
+  </body>
+</html>
