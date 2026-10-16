@@ -1,905 +1,2556 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Unidad 3 · Microprocesador — IOC</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#0b1310;
-    --panel:#111e19;
-    --panel-alt:#16261f;
-    --panel-raise:#1b2e26;
-    --line:#25382f;
-    --line-soft:#1c2c25;
-    --copper:#d6a24d;
-    --copper-dim:#8a6c37;
-    --cyan:#6fe7d4;
-    --cyan-dim:#2f5c53;
-    --text:#eaf1ec;
-    --text-muted:#93a89c;
-    --text-faint:#5f7469;
-    --ok:#7cc98a;
-    --bad:#e2725b;
-    --radius:3px;
-    --serif-mono:'IBM Plex Mono', monospace;
-    --sans:'IBM Plex Sans', sans-serif;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:var(--sans);
-    line-height:1.6;
-    font-size:16px;
-    background-image:
-      linear-gradient(var(--line-soft) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
-    background-size:48px 48px;
-    background-attachment:fixed;
-  }
-  ::selection{background:var(--copper); color:#111;}
-  a{color:var(--cyan);}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unidad 3 · Microprocesador — IOC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b1310;
+        --panel: #111e19;
+        --panel-alt: #16261f;
+        --panel-raise: #1b2e26;
+        --line: #25382f;
+        --line-soft: #1c2c25;
+        --copper: #d6a24d;
+        --copper-dim: #8a6c37;
+        --cyan: #6fe7d4;
+        --cyan-dim: #2f5c53;
+        --text: #eaf1ec;
+        --text-muted: #93a89c;
+        --text-faint: #5f7469;
+        --ok: #7cc98a;
+        --bad: #e2725b;
+        --radius: 3px;
+        --serif-mono: "IBM Plex Mono", monospace;
+        --sans: "IBM Plex Sans", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.6;
+        font-size: 16px;
+        background-image:
+          linear-gradient(var(--line-soft) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+        background-size: 48px 48px;
+        background-attachment: fixed;
+      }
+      ::selection {
+        background: var(--copper);
+        color: #111;
+      }
+      a {
+        color: var(--cyan);
+      }
 
-  .shell{display:grid; grid-template-columns:260px 1fr; max-width:1400px; margin:0 auto;}
-  @media (max-width:920px){ .shell{grid-template-columns:1fr;} }
+      .shell {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      @media (max-width: 920px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+      }
 
-  .sidebar{
-    position:sticky; top:0; align-self:start; height:100vh;
-    border-right:1px solid var(--line);
-    background:linear-gradient(180deg, var(--panel), var(--bg));
-    padding:22px 0 22px 0;
-    overflow-y:auto;
-  }
-  @media (max-width:920px){
-    .sidebar{position:relative; height:auto; border-right:none; border-bottom:1px solid var(--line);}
-  }
-  .sidebar-brand{padding:0 20px 18px 20px; border-bottom:1px solid var(--line); margin-bottom:12px;}
-  .sidebar-brand .chip{
-    display:inline-block; font-family:var(--serif-mono); font-size:11px; letter-spacing:.04em;
-    color:var(--copper); border:1px solid var(--copper-dim); border-radius:2px; padding:2px 6px; margin-bottom:8px;
-  }
-  .sidebar-brand h1{font-size:17px; margin:0 0 4px 0; font-family:var(--serif-mono); font-weight:600;}
-  .sidebar-brand p{margin:0; font-size:12.5px; color:var(--text-muted);}
+      .sidebar {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        border-right: 1px solid var(--line);
+        background: linear-gradient(180deg, var(--panel), var(--bg));
+        padding: 22px 0 22px 0;
+        overflow-y: auto;
+      }
+      @media (max-width: 920px) {
+        .sidebar {
+          position: relative;
+          height: auto;
+          border-right: none;
+          border-bottom: 1px solid var(--line);
+        }
+      }
+      .sidebar-brand {
+        padding: 0 20px 18px 20px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 12px;
+      }
+      .sidebar-brand .chip {
+        display: inline-block;
+        font-family: var(--serif-mono);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        color: var(--copper);
+        border: 1px solid var(--copper-dim);
+        border-radius: 2px;
+        padding: 2px 6px;
+        margin-bottom: 8px;
+      }
+      .sidebar-brand h1 {
+        font-size: 17px;
+        margin: 0 0 4px 0;
+        font-family: var(--serif-mono);
+        font-weight: 600;
+      }
+      .sidebar-brand p {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--text-muted);
+      }
 
-  nav.toc{padding:0 10px;}
-  nav.toc a{
-    display:flex; gap:10px; align-items:baseline; text-decoration:none; color:var(--text-muted);
-    font-size:13.5px; padding:7px 10px; border-radius:2px; border-left:2px solid transparent;
-  }
-  nav.toc a .addr{font-family:var(--serif-mono); font-size:11px; color:var(--text-faint); min-width:38px;}
-  nav.toc a:hover{color:var(--text); background:var(--panel-alt);}
-  nav.toc a.active{color:var(--cyan); border-left-color:var(--cyan); background:var(--panel-alt);}
-  nav.toc a.active .addr{color:var(--cyan);}
-  nav.toc .group-label{
-    font-family:var(--serif-mono); font-size:10.5px; color:var(--text-faint); text-transform:uppercase;
-    letter-spacing:.08em; margin:16px 10px 4px 10px;
-  }
+      nav.toc {
+        padding: 0 10px;
+      }
+      nav.toc a {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        text-decoration: none;
+        color: var(--text-muted);
+        font-size: 13.5px;
+        padding: 7px 10px;
+        border-radius: 2px;
+        border-left: 2px solid transparent;
+      }
+      nav.toc a .addr {
+        font-family: var(--serif-mono);
+        font-size: 11px;
+        color: var(--text-faint);
+        min-width: 38px;
+      }
+      nav.toc a:hover {
+        color: var(--text);
+        background: var(--panel-alt);
+      }
+      nav.toc a.active {
+        color: var(--cyan);
+        border-left-color: var(--cyan);
+        background: var(--panel-alt);
+      }
+      nav.toc a.active .addr {
+        color: var(--cyan);
+      }
+      nav.toc .group-label {
+        font-family: var(--serif-mono);
+        font-size: 10.5px;
+        color: var(--text-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin: 16px 10px 4px 10px;
+      }
 
-  main{padding:0 0 80px 0; min-width:0;}
+      main {
+        padding: 0 0 80px 0;
+        min-width: 0;
+      }
 
-  .hero{padding:64px 56px 40px 56px; border-bottom:1px solid var(--line); position:relative; overflow:hidden;}
-  @media (max-width:640px){ .hero{padding:44px 20px 30px 20px;} }
-  .hero::before{
-    content:""; position:absolute; right:-60px; top:-60px; width:280px; height:280px; border-radius:50%;
-    background:radial-gradient(circle, rgba(111,231,212,.10), transparent 70%);
-  }
-  .hero .led{
-    display:inline-flex; align-items:center; gap:8px; font-family:var(--serif-mono); font-size:12px;
-    color:var(--ok); border:1px solid var(--cyan-dim); padding:4px 10px; border-radius:20px; margin-bottom:22px;
-  }
-  .hero .led i{width:7px; height:7px; border-radius:50%; background:var(--ok); box-shadow:0 0 8px var(--ok);
-    animation:blink 2.4s ease-in-out infinite;}
-  @keyframes blink{0%,100%{opacity:1;} 50%{opacity:.25;}}
-  .hero h1{
-    font-family:var(--serif-mono); font-size:clamp(34px,6vw,58px); margin:0 0 6px 0; font-weight:700;
-    letter-spacing:-.01em; line-height:1.02;
-  }
-  .hero h1 span{color:var(--copper);}
-  .hero .subtitle{font-size:clamp(16px,2.2vw,20px); color:var(--text-muted); max-width:640px; margin:14px 0 26px 0;}
-  .hero .meta-row{display:flex; flex-wrap:wrap; gap:10px;}
-  .hero .meta-row .tag{
-    font-family:var(--serif-mono); font-size:11.5px; color:var(--text-muted); border:1px solid var(--line);
-    padding:5px 10px; border-radius:2px; background:var(--panel);
-  }
-  .addr-strip{display:flex; gap:2px; margin-top:32px; font-family:var(--serif-mono); font-size:11px; color:var(--text-faint); flex-wrap:wrap;}
-  .addr-strip span{border:1px solid var(--line-soft); padding:3px 7px; border-radius:2px;}
+      .hero {
+        padding: 64px 56px 40px 56px;
+        border-bottom: 1px solid var(--line);
+        position: relative;
+        overflow: hidden;
+      }
+      @media (max-width: 640px) {
+        .hero {
+          padding: 44px 20px 30px 20px;
+        }
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        right: -60px;
+        top: -60px;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(111, 231, 212, 0.1),
+          transparent 70%
+        );
+      }
+      .hero .led {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--serif-mono);
+        font-size: 12px;
+        color: var(--ok);
+        border: 1px solid var(--cyan-dim);
+        padding: 4px 10px;
+        border-radius: 20px;
+        margin-bottom: 22px;
+      }
+      .hero .led i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--ok);
+        box-shadow: 0 0 8px var(--ok);
+        animation: blink 2.4s ease-in-out infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.25;
+        }
+      }
+      .hero h1 {
+        font-family: var(--serif-mono);
+        font-size: clamp(34px, 6vw, 58px);
+        margin: 0 0 6px 0;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        line-height: 1.02;
+      }
+      .hero h1 span {
+        color: var(--copper);
+      }
+      .hero .subtitle {
+        font-size: clamp(16px, 2.2vw, 20px);
+        color: var(--text-muted);
+        max-width: 640px;
+        margin: 14px 0 26px 0;
+      }
+      .hero .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .hero .meta-row .tag {
+        font-family: var(--serif-mono);
+        font-size: 11.5px;
+        color: var(--text-muted);
+        border: 1px solid var(--line);
+        padding: 5px 10px;
+        border-radius: 2px;
+        background: var(--panel);
+      }
+      .addr-strip {
+        display: flex;
+        gap: 2px;
+        margin-top: 32px;
+        font-family: var(--serif-mono);
+        font-size: 11px;
+        color: var(--text-faint);
+        flex-wrap: wrap;
+      }
+      .addr-strip span {
+        border: 1px solid var(--line-soft);
+        padding: 3px 7px;
+        border-radius: 2px;
+      }
 
-  section.unit{padding:52px 56px; border-bottom:1px solid var(--line); scroll-margin-top:20px;}
-  @media (max-width:640px){ section.unit{padding:36px 20px;} }
-  section.unit:last-of-type{border-bottom:none;}
+      section.unit {
+        padding: 52px 56px;
+        border-bottom: 1px solid var(--line);
+        scroll-margin-top: 20px;
+      }
+      @media (max-width: 640px) {
+        section.unit {
+          padding: 36px 20px;
+        }
+      }
+      section.unit:last-of-type {
+        border-bottom: none;
+      }
 
-  .sec-head{display:flex; gap:16px; align-items:flex-start; margin-bottom:26px;}
-  .sec-head .num{
-    font-family:var(--serif-mono); font-size:13px; color:var(--copper); border:1px solid var(--copper-dim);
-    border-radius:2px; padding:3px 8px; white-space:nowrap; margin-top:6px;
-  }
-  .sec-head h2{font-family:var(--serif-mono); font-size:clamp(22px,3vw,30px); margin:0; font-weight:600;}
-  .sec-head p.lede{color:var(--text-muted); margin:8px 0 0 0; max-width:680px; font-size:15px;}
+      .sec-head {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        margin-bottom: 26px;
+      }
+      .sec-head .num {
+        font-family: var(--serif-mono);
+        font-size: 13px;
+        color: var(--copper);
+        border: 1px solid var(--copper-dim);
+        border-radius: 2px;
+        padding: 3px 8px;
+        white-space: nowrap;
+        margin-top: 6px;
+      }
+      .sec-head h2 {
+        font-family: var(--serif-mono);
+        font-size: clamp(22px, 3vw, 30px);
+        margin: 0;
+        font-weight: 600;
+      }
+      .sec-head p.lede {
+        color: var(--text-muted);
+        margin: 8px 0 0 0;
+        max-width: 680px;
+        font-size: 15px;
+      }
 
-  .content{max-width:760px;}
-  .content.wide{max-width:920px;}
-  .content h3{font-family:var(--serif-mono); font-size:17px; margin:34px 0 12px 0; color:var(--text);}
-  .content h4{font-family:var(--serif-mono); font-size:14.5px; margin:22px 0 8px 0; color:var(--cyan);}
-  .content p{margin:0 0 14px 0; color:#d7e2db;}
-  .content ul, .content ol{margin:0 0 14px 0; padding-left:22px; color:#d7e2db;}
-  .content li{margin-bottom:6px;}
+      .content {
+        max-width: 760px;
+      }
+      .content.wide {
+        max-width: 920px;
+      }
+      .content h3 {
+        font-family: var(--serif-mono);
+        font-size: 17px;
+        margin: 34px 0 12px 0;
+        color: var(--text);
+      }
+      .content h4 {
+        font-family: var(--serif-mono);
+        font-size: 14.5px;
+        margin: 22px 0 8px 0;
+        color: var(--cyan);
+      }
+      .content p {
+        margin: 0 0 14px 0;
+        color: #d7e2db;
+      }
+      .content ul,
+      .content ol {
+        margin: 0 0 14px 0;
+        padding-left: 22px;
+        color: #d7e2db;
+      }
+      .content li {
+        margin-bottom: 6px;
+      }
 
-  .term{font-family:var(--serif-mono); background:var(--panel-alt); color:var(--cyan); padding:1px 6px;
-    border-radius:2px; font-size:.92em; border:1px solid var(--line);}
+      .term {
+        font-family: var(--serif-mono);
+        background: var(--panel-alt);
+        color: var(--cyan);
+        padding: 1px 6px;
+        border-radius: 2px;
+        font-size: 0.92em;
+        border: 1px solid var(--line);
+      }
 
-  .callout{border:1px solid var(--line); border-left:3px solid var(--copper); background:var(--panel);
-    padding:16px 18px; border-radius:2px; margin:18px 0; font-size:14.5px; color:#dfe9e2;}
-  .callout strong{color:var(--copper);}
-  .callout.cyan{border-left-color:var(--cyan);}
-  .callout.cyan strong{color:var(--cyan);}
+      .callout {
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--copper);
+        background: var(--panel);
+        padding: 16px 18px;
+        border-radius: 2px;
+        margin: 18px 0;
+        font-size: 14.5px;
+        color: #dfe9e2;
+      }
+      .callout strong {
+        color: var(--copper);
+      }
+      .callout.cyan {
+        border-left-color: var(--cyan);
+      }
+      .callout.cyan strong {
+        color: var(--cyan);
+      }
 
-  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:20px 0;}
-  @media (max-width:680px){ .grid-2{grid-template-columns:1fr;} }
-  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:20px 0;}
-  @media (max-width:780px){ .grid-3{grid-template-columns:1fr 1fr;} }
-  @media (max-width:520px){ .grid-3{grid-template-columns:1fr;} }
-  .grid-4{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:20px 0;}
-  @media (max-width:780px){ .grid-4{grid-template-columns:1fr 1fr;} }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin: 20px 0;
+      }
+      @media (max-width: 680px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin: 20px 0;
+      }
+      @media (max-width: 780px) {
+        .grid-3 {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 520px) {
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin: 20px 0;
+      }
+      @media (max-width: 780px) {
+        .grid-4 {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
 
-  .card{background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:18px 20px;}
-  .card h4{margin-top:0;}
-  .card.ok{border-top:2px solid var(--ok);}
-  .card.bad{border-top:2px solid var(--bad);}
-  .card ul{padding-left:18px; margin-bottom:0;}
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 18px 20px;
+      }
+      .card h4 {
+        margin-top: 0;
+      }
+      .card.ok {
+        border-top: 2px solid var(--ok);
+      }
+      .card.bad {
+        border-top: 2px solid var(--bad);
+      }
+      .card ul {
+        padding-left: 18px;
+        margin-bottom: 0;
+      }
 
-  table{width:100%; border-collapse:collapse; margin:18px 0; font-size:14px;}
-  th,td{border:1px solid var(--line); padding:9px 12px; text-align:left;}
-  th{background:var(--panel-alt); font-family:var(--serif-mono); font-weight:500; font-size:12.5px; color:var(--copper);}
-  td{color:#d7e2db;}
-  tr:nth-child(even) td{background:rgba(255,255,255,.015);}
-  .table-wrap{overflow-x:auto;}
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 18px 0;
+        font-size: 14px;
+      }
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 9px 12px;
+        text-align: left;
+      }
+      th {
+        background: var(--panel-alt);
+        font-family: var(--serif-mono);
+        font-weight: 500;
+        font-size: 12.5px;
+        color: var(--copper);
+      }
+      td {
+        color: #d7e2db;
+      }
+      tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.015);
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
 
-  figure{margin:26px 0; padding:18px; background:var(--panel); border:1px solid var(--line); border-radius:3px;}
-  figure img{width:100%; height:auto; display:block; border-radius:2px; background:#000;}
-  figcaption{font-size:12.5px; color:var(--text-muted); margin-top:10px; font-family:var(--serif-mono);}
+      figure {
+        margin: 26px 0;
+        padding: 18px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+      }
+      figure img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 2px;
+        background: #000;
+      }
+      figcaption {
+        font-size: 12.5px;
+        color: var(--text-muted);
+        margin-top: 10px;
+        font-family: var(--serif-mono);
+      }
 
-  .photo-row{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:20px 0;}
-  @media (max-width:680px){ .photo-row{grid-template-columns:1fr 1fr;} }
-  .photo-row figure{margin:0; padding:10px;}
-  .photo-row img{aspect-ratio:4/3; object-fit:cover;}
+      .photo-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin: 20px 0;
+      }
+      @media (max-width: 680px) {
+        .photo-row {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .photo-row figure {
+        margin: 0;
+        padding: 10px;
+      }
+      .photo-row img {
+        aspect-ratio: 4/3;
+        object-fit: cover;
+      }
 
-  .steps{counter-reset:step; list-style:none; padding-left:0; margin:18px 0;}
-  .steps li{counter-increment:step; position:relative; padding:10px 0 10px 42px; border-bottom:1px dashed var(--line-soft); color:#d7e2db;}
-  .steps li:last-child{border-bottom:none;}
-  .steps li::before{
-    content:counter(step); position:absolute; left:0; top:8px; width:26px; height:26px; border-radius:50%;
-    border:1px solid var(--copper-dim); color:var(--copper); font-family:var(--serif-mono); font-size:12px;
-    display:flex; align-items:center; justify-content:center;
-  }
+      .steps {
+        counter-reset: step;
+        list-style: none;
+        padding-left: 0;
+        margin: 18px 0;
+      }
+      .steps li {
+        counter-increment: step;
+        position: relative;
+        padding: 10px 0 10px 42px;
+        border-bottom: 1px dashed var(--line-soft);
+        color: #d7e2db;
+      }
+      .steps li:last-child {
+        border-bottom: none;
+      }
+      .steps li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 8px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid var(--copper-dim);
+        color: var(--copper);
+        font-family: var(--serif-mono);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-  .pyramid-wrap{display:flex; justify-content:center; margin:24px 0;}
-  code.inline{font-family:var(--serif-mono); background:var(--panel-alt); padding:1px 5px; border-radius:2px; font-size:.9em;}
+      .pyramid-wrap {
+        display: flex;
+        justify-content: center;
+        margin: 24px 0;
+      }
+      code.inline {
+        font-family: var(--serif-mono);
+        background: var(--panel-alt);
+        padding: 1px 5px;
+        border-radius: 2px;
+        font-size: 0.9em;
+      }
 
-  .qa-toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px;}
-  .btn{font-family:var(--serif-mono); font-size:13px; color:var(--bg); background:var(--copper); border:none;
-    padding:10px 16px; border-radius:2px; cursor:pointer; font-weight:600;}
-  .btn:hover{background:#e8b869;}
-  .btn.secondary{background:transparent; color:var(--cyan); border:1px solid var(--cyan-dim);}
-  .btn.secondary:hover{background:var(--panel-alt);}
-  .score-pill{font-family:var(--serif-mono); font-size:13px; color:var(--text-muted); border:1px solid var(--line);
-    padding:9px 14px; border-radius:2px; background:var(--panel);}
-  .score-pill b{color:var(--ok);}
+      .qa-toolbar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+      }
+      .btn {
+        font-family: var(--serif-mono);
+        font-size: 13px;
+        color: var(--bg);
+        background: var(--copper);
+        border: none;
+        padding: 10px 16px;
+        border-radius: 2px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .btn:hover {
+        background: #e8b869;
+      }
+      .btn.secondary {
+        background: transparent;
+        color: var(--cyan);
+        border: 1px solid var(--cyan-dim);
+      }
+      .btn.secondary:hover {
+        background: var(--panel-alt);
+      }
+      .score-pill {
+        font-family: var(--serif-mono);
+        font-size: 13px;
+        color: var(--text-muted);
+        border: 1px solid var(--line);
+        padding: 9px 14px;
+        border-radius: 2px;
+        background: var(--panel);
+      }
+      .score-pill b {
+        color: var(--ok);
+      }
 
-  .spotlight{background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:30px 32px; margin-bottom:30px; min-height:120px;}
-  .spotlight .cat{font-family:var(--serif-mono); font-size:11.5px; color:var(--copper); border:1px solid var(--copper-dim);
-    display:inline-block; padding:3px 9px; border-radius:2px; margin-bottom:14px;}
-  .spotlight .qtext{font-size:19px; margin:0 0 18px 0; color:var(--text);}
-  .spotlight .options{display:grid; gap:10px;}
-  .opt{text-align:left; background:var(--panel-alt); border:1px solid var(--line); color:#d7e2db; padding:12px 16px;
-    border-radius:2px; cursor:pointer; font-size:14.5px; font-family:var(--sans); transition:background .15s;}
-  .opt:hover{background:var(--panel-raise);}
-  .opt.correct{border-color:var(--ok); background:rgba(124,201,138,.12); color:var(--ok);}
-  .opt.incorrect{border-color:var(--bad); background:rgba(226,114,91,.12); color:var(--bad);}
-  .opt[disabled]{cursor:default;}
-  .explain{margin-top:16px; padding:14px 16px; background:var(--panel-alt); border-left:3px solid var(--cyan);
-    font-size:14px; color:#dfe9e2; display:none; border-radius:2px;}
-  .explain.show{display:block;}
+      .spotlight {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 30px 32px;
+        margin-bottom: 30px;
+        min-height: 120px;
+      }
+      .spotlight .cat {
+        font-family: var(--serif-mono);
+        font-size: 11.5px;
+        color: var(--copper);
+        border: 1px solid var(--copper-dim);
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 2px;
+        margin-bottom: 14px;
+      }
+      .spotlight .qtext {
+        font-size: 19px;
+        margin: 0 0 18px 0;
+        color: var(--text);
+      }
+      .spotlight .options {
+        display: grid;
+        gap: 10px;
+      }
+      .opt {
+        text-align: left;
+        background: var(--panel-alt);
+        border: 1px solid var(--line);
+        color: #d7e2db;
+        padding: 12px 16px;
+        border-radius: 2px;
+        cursor: pointer;
+        font-size: 14.5px;
+        font-family: var(--sans);
+        transition: background 0.15s;
+      }
+      .opt:hover {
+        background: var(--panel-raise);
+      }
+      .opt.correct {
+        border-color: var(--ok);
+        background: rgba(124, 201, 138, 0.12);
+        color: var(--ok);
+      }
+      .opt.incorrect {
+        border-color: var(--bad);
+        background: rgba(226, 114, 91, 0.12);
+        color: var(--bad);
+      }
+      .opt[disabled] {
+        cursor: default;
+      }
+      .explain {
+        margin-top: 16px;
+        padding: 14px 16px;
+        background: var(--panel-alt);
+        border-left: 3px solid var(--cyan);
+        font-size: 14px;
+        color: #dfe9e2;
+        display: none;
+        border-radius: 2px;
+      }
+      .explain.show {
+        display: block;
+      }
 
-  .debate-list{display:grid; gap:12px; margin-top:14px;}
-  .debate-item{background:var(--panel); border:1px dashed var(--line); border-left:3px solid var(--cyan); padding:14px 18px;
-    border-radius:2px; font-size:14.5px; color:#dfe9e2;}
+      .debate-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+      .debate-item {
+        background: var(--panel);
+        border: 1px dashed var(--line);
+        border-left: 3px solid var(--cyan);
+        padding: 14px 18px;
+        border-radius: 2px;
+        font-size: 14.5px;
+        color: #dfe9e2;
+      }
 
-  footer{padding:30px 56px; color:var(--text-faint); font-size:12.5px; font-family:var(--serif-mono);}
-  @media (max-width:640px){ footer{padding:24px 20px;} }
+      footer {
+        padding: 30px 56px;
+        color: var(--text-faint);
+        font-size: 12.5px;
+        font-family: var(--serif-mono);
+      }
+      @media (max-width: 640px) {
+        footer {
+          padding: 24px 20px;
+        }
+      }
 
-  .mobile-toggle{display:none;}
-  @media (max-width:920px){
-    .mobile-toggle{
-      display:block; width:100%; text-align:left; background:var(--panel); color:var(--text);
-      border:none; border-bottom:1px solid var(--line); padding:14px 20px; font-family:var(--serif-mono); font-size:13px;
-    }
-    nav.toc{display:none;}
-    .sidebar.open nav.toc{display:block;}
-  }
+      .mobile-toggle {
+        display: none;
+      }
+      @media (max-width: 920px) {
+        .mobile-toggle {
+          display: block;
+          width: 100%;
+          text-align: left;
+          background: var(--panel);
+          color: var(--text);
+          border: none;
+          border-bottom: 1px solid var(--line);
+          padding: 14px 20px;
+          font-family: var(--serif-mono);
+          font-size: 13px;
+        }
+        nav.toc {
+          display: none;
+        }
+        .sidebar.open nav.toc {
+          display: block;
+        }
+      }
       /* ---------- site-wide navigation (added) ---------- */
-      .site-nav{
-        padding:14px 20px 18px 20px;
-        border-bottom:1px solid var(--line);
-        margin-bottom:12px;
+      .site-nav {
+        padding: 14px 20px 18px 20px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 12px;
       }
-      .site-nav-home{
-        display:inline-flex; align-items:center; gap:6px;
-        font-family:var(--serif-mono); font-size:12.5px; color:var(--cyan);
-        text-decoration:none; margin-bottom:12px;
+      .site-nav-home {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--serif-mono);
+        font-size: 12.5px;
+        color: var(--cyan);
+        text-decoration: none;
+        margin-bottom: 12px;
       }
-      .site-nav-home:hover{ text-decoration:underline; }
-      .site-nav-pager{
-        display:grid; grid-template-columns:1fr 1fr; gap:8px;
-        font-family:var(--serif-mono); font-size:11.5px;
+      .site-nav-home:hover {
+        text-decoration: underline;
       }
-      .site-nav-pager a{
-        color:var(--text-muted); text-decoration:none; border:1px solid var(--line);
-        border-radius:2px; padding:6px 8px; background:var(--panel-alt);
-        transition:border-color .15s, color .15s;
+      .site-nav-pager {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        font-family: var(--serif-mono);
+        font-size: 11.5px;
       }
-      .site-nav-pager a:hover{ border-color:var(--cyan); color:var(--cyan); }
-      .site-nav-pager a.next{ text-align:right; }
-      .site-nav-pager .disabled{
-        color:var(--text-faint); border:1px dashed var(--line-soft); border-radius:2px;
-        padding:6px 8px; text-align:right;
+      .site-nav-pager a {
+        color: var(--text-muted);
+        text-decoration: none;
+        border: 1px solid var(--line);
+        border-radius: 2px;
+        padding: 6px 8px;
+        background: var(--panel-alt);
+        transition:
+          border-color 0.15s,
+          color 0.15s;
       }
-
-</style>
-</head>
-<body>
-
-<div class="shell">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-      <span class="chip">Instalación y Organización de la Computadora - TIG - Año 2026 - Facultad Regional Orán</span>
-      <h1>Unidad 3</h1>
-      <p>Microprocesador</p>
-    </div>
-    <div class="site-nav">
-          <a class="site-nav-home" href="index.html">&#8962; Indice de la materia</a>
+      .site-nav-pager a:hover {
+        border-color: var(--cyan);
+        color: var(--cyan);
+      }
+      .site-nav-pager a.next {
+        text-align: right;
+      }
+      .site-nav-pager .disabled {
+        color: var(--text-faint);
+        border: 1px dashed var(--line-soft);
+        border-radius: 2px;
+        padding: 6px 8px;
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <span class="chip"
+            >Instalación y Organización de la Computadora - TIG - Año 2026 -
+            Facultad Regional Orán</span
+          >
+          <h1>Unidad 3</h1>
+          <p>Microprocesador</p>
+        </div>
+        <div class="site-nav">
+          <a class="site-nav-home" href="index.html"
+            >&#8962; Indice de la materia</a
+          >
           <div class="site-nav-pager">
             <a class="prev" href="unidad2.html">&larr; Unidad 2</a>
             <a class="next" href="unidad4.html">Unidad 4 &rarr;</a>
           </div>
         </div>
-        <button class="mobile-toggle" id="mobileToggle">☰ Ver índice de contenidos</button>
-    <nav class="toc" id="toc">
-      <div class="group-label">La CPU</div>
-      <a href="#s1"><span class="addr">3.1</span> Arquitectura de la CPU</a>
-      <a href="#s2"><span class="addr">3.2</span> El microprocesador y su caché</a>
-      <div class="group-label">Diseño</div>
-      <a href="#s3"><span class="addr">3.3</span> Paradigmas: CISC, RISC e híbridos</a>
-      <a href="#s4"><span class="addr">3.4</span> Familias y fabricantes</a>
-      <a href="#s5"><span class="addr">3.5</span> Tecnologías de fabricación</a>
-      <div class="group-label">Instalación</div>
-      <a href="#s6"><span class="addr">3.6</span> Conexión con la placa madre</a>
-      <a href="#s7"><span class="addr">3.7</span> Refrigeración y pasta térmica</a>
-      <a href="#s8"><span class="addr">3.8</span> Overclocking</a>
-      <div class="group-label">Actividad</div>
-      <a href="#s9"><span class="addr">✎</span> Preguntas para la clase</a>
-    </nav>
-  </aside>
+        <button class="mobile-toggle" id="mobileToggle">
+          ☰ Ver índice de contenidos
+        </button>
+        <nav class="toc" id="toc">
+          <div class="group-label">La CPU</div>
+          <a href="#s1"><span class="addr">3.1</span> Arquitectura de la CPU</a>
+          <a href="#s2"
+            ><span class="addr">3.2</span> El microprocesador y su caché</a
+          >
+          <div class="group-label">Diseño</div>
+          <a href="#s3"
+            ><span class="addr">3.3</span> Paradigmas: CISC, RISC e híbridos</a
+          >
+          <a href="#s4"><span class="addr">3.4</span> Familias y fabricantes</a>
+          <a href="#s5"
+            ><span class="addr">3.5</span> Tecnologías de fabricación</a
+          >
+          <div class="group-label">Instalación</div>
+          <a href="#s6"
+            ><span class="addr">3.6</span> Conexión con la placa madre</a
+          >
+          <a href="#s7"
+            ><span class="addr">3.7</span> Refrigeración y pasta térmica</a
+          >
+          <a href="#s8"><span class="addr">3.8</span> Overclocking</a>
+          <div class="group-label">Actividad</div>
+          <a href="#s9"><span class="addr">✎</span> Preguntas para la clase</a>
+        </nav>
+      </aside>
 
-  <main>
-    <div class="hero">
-      <span class="led"><i></i> CPU · 100% LOAD</span>
-      <h1>UNIDAD 3<br><span>Microprocesador</span></h1>
-      <p class="subtitle">Instalación y Organización de la Computadora — arquitectura de la CPU, escalas de integración, paradigmas CISC/RISC, fabricantes, sockets, sistemas de refrigeración y overclocking.</p>
-      <div class="meta-row">
-        <span class="tag">Tecnicatura en Informática de Gestión</span>
-        <span class="tag">Ing. Dora Mendoza</span>
-        <span class="tag">Universidad Nacional de Salta — Facultad Regional Orán</span>
-      </div>
-      <div class="addr-strip">
-        <span>ALU</span><span>CU</span><span>CISC</span><span>RISC</span><span>x86</span><span>ARM</span><span>PGA</span><span>BGA</span><span>LGA</span><span>TDP</span>
-      </div>
+      <main>
+        <div class="hero">
+          <span class="led"><i></i> CPU · 100% LOAD</span>
+          <h1>UNIDAD 3<br /><span>Microprocesador</span></h1>
+          <p class="subtitle">
+            Instalación y Organización de la Computadora — arquitectura de la
+            CPU, escalas de integración, paradigmas CISC/RISC, fabricantes,
+            sockets, sistemas de refrigeración y overclocking.
+          </p>
+          <div class="meta-row">
+            <span class="tag">Tecnicatura en Informática de Gestión</span>
+            <span class="tag"
+              >Universidad Nacional de Salta — Facultad Regional Orán</span
+            >
+          </div>
+          <div class="addr-strip">
+            <span>ALU</span><span>CU</span><span>CISC</span><span>RISC</span
+            ><span>x86</span><span>ARM</span><span>PGA</span><span>BGA</span
+            ><span>LGA</span><span>TDP</span>
+          </div>
+        </div>
+
+        <!-- ===================== 3.1 ARQUITECTURA CPU ===================== -->
+        <section class="unit" id="s1">
+          <div class="sec-head">
+            <span class="num">3.1</span>
+            <div>
+              <h2>La Unidad Central de Procesamiento: su arquitectura</h2>
+              <p class="lede">
+                El corazón de cualquier dispositivo programable, desde una
+                calculadora hasta una supercomputadora.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <p>
+              La <span class="term">CPU (Central Processing Unit)</span> o
+              procesador es el hardware que interpreta las instrucciones de un
+              programa, realizando las operaciones aritméticas, lógicas y de
+              entrada/salida del sistema. Su forma e implementación han cambiado
+              mucho, pero su operación fundamental sigue siendo la misma.
+            </p>
+            <div class="grid-3">
+              <div class="card">
+                <h4>Multiprocesamiento</h4>
+                <p style="margin: 0">
+                  Una computadora puede tener más de una CPU.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Multinúcleo</h4>
+                <p style="margin: 0">
+                  Un circuito integrado puede contener varias CPU en un solo
+                  chip.
+                </p>
+              </div>
+              <div class="card">
+                <h4>SoC</h4>
+                <p style="margin: 0">
+                  Un chip que contiene la CPU y también los periféricos: sistema
+                  en un chip.
+                </p>
+              </div>
+            </div>
+
+            <h4>Unidades de rendimiento</h4>
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>Unidad</th>
+                  <th>Significado</th>
+                </tr>
+                <tr>
+                  <td>CPI</td>
+                  <td>
+                    Ciclos promedio que tarda en ejecutarse cada instrucción
+                  </td>
+                </tr>
+                <tr>
+                  <td>MIPS nativos</td>
+                  <td>Millones de instrucciones ejecutadas por segundo</td>
+                </tr>
+                <tr>
+                  <td>FLOPS</td>
+                  <td>Operaciones en coma flotante por segundo</td>
+                </tr>
+              </table>
+            </div>
+            <p>
+              Todo procesador está gobernado por un
+              <span class="term">reloj del sistema</span>, cuya velocidad se
+              mide en Hz. El reloj emite pulsos eléctricos a intervalos
+              constantes (ciclos) que marcan el ritmo de cada paso de la
+              instrucción. La <strong>frecuencia</strong> mide cuántos ciclos
+              ocurren por segundo (Hz = 1/s); el <strong>período</strong> es el
+              tiempo de un ciclo completo, la inversa de la frecuencia.
+            </p>
+
+            <h3>3.1.2 — Componentes de un procesador</h3>
+            <div class="grid-2">
+              <div class="card">
+                <h4>ALU (Unidad Aritmético-Lógica)</h4>
+                <p style="margin: 0">
+                  Realiza las operaciones aritméticas o lógicas que le ordena la
+                  UC, auxiliada por registros (acumuladores) para datos y
+                  resultados transitorios.
+                </p>
+              </div>
+              <div class="card">
+                <h4>CU (Unidad de Control)</h4>
+                <p style="margin: 0">
+                  Secuencia y ordena la ejecución de las instrucciones del
+                  programa: las interpreta y genera las señales de control
+                  adecuadas.
+                </p>
+              </div>
+            </div>
+            <p>
+              <strong>Registros internos:</strong> almacenan temporalmente datos
+              de la instrucción en curso y las próximas a ejecutar
+              (acumuladores, de control, de direcciones). El tamaño de los
+              registros define la <strong>arquitectura del procesador</strong>:
+              el tamaño de los datos, el ancho del bus interno/externo y la
+              organización de la memoria.
+            </p>
+            <p>
+              Todos los componentes se interconectan mediante
+              <span class="term">buses internos</span> (control, datos,
+              direcciones), que a su vez se conectan a los buses externos para
+              comunicarse con memoria, E/S y almacenamiento.
+            </p>
+
+            <h3>3.1.3 — Escalas de integración</h3>
+            <p>
+              Un <span class="term">circuito integrado (CI)</span> es una
+              estructura de pocos milímetros cuadrados de material semiconductor
+              (generalmente silicio) sobre la que se fabrican circuitos
+              electrónicos mediante fotolitografía, protegida por un
+              encapsulado. Con transistores se construyen compuertas lógicas, y
+              con compuertas, circuitos mayores.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>Escala</th>
+                  <th>Sigla</th>
+                  <th>Ejemplo</th>
+                </tr>
+                <tr>
+                  <td>Pequeña escala</td>
+                  <td>SSI</td>
+                  <td>Compuertas lógicas elementales</td>
+                </tr>
+                <tr>
+                  <td>Escala media</td>
+                  <td>MSI</td>
+                  <td>Codificadores, multiplexores, contadores</td>
+                </tr>
+                <tr>
+                  <td>Gran escala</td>
+                  <td>LSI</td>
+                  <td>Memorias, microprocesadores (ej: Intel 8080)</td>
+                </tr>
+                <tr>
+                  <td>Muy gran escala</td>
+                  <td>VLSI</td>
+                  <td>Tecnología de los años 80</td>
+                </tr>
+                <tr>
+                  <td>Ultra escala</td>
+                  <td>ULSI</td>
+                  <td>Pentium 4</td>
+                </tr>
+                <tr>
+                  <td>Giga escala</td>
+                  <td>GLSI</td>
+                  <td>Procesadores Core i9</td>
+                </tr>
+              </table>
+            </div>
+
+            <h3>3.1.4 — Evolución de las CPU</h3>
+            <div class="grid-2">
+              <div class="card">
+                <h4>1ª generación — relés y tubos de vacío</h4>
+                <p style="margin: 0">
+                  Computadoras como ABC (1937-42), ENIAC, EDVAC y Mark I. Los
+                  CPU a tubo eran más rápidos pero fallaban en promedio cada 8
+                  horas; los de relés fallaban menos pero eran más lentos.
+                </p>
+              </div>
+              <div class="card">
+                <h4>2ª generación — transistores y CIs SSI/MSI</h4>
+                <p style="margin: 0">
+                  Décadas de 1950-60: mayor capacidad de procesamiento y
+                  confiabilidad, con menor tamaño y consumo.
+                </p>
+              </div>
+              <div class="card">
+                <h4>3ª generación — microprocesadores LSI</h4>
+                <p style="margin: 0">
+                  1971: Intel monta el primer procesador completo en un CI, el
+                  <strong>4004</strong> (2.250 transistores, 740 kHz).
+                </p>
+              </div>
+              <div class="card">
+                <h4>4ª generación — VLSI, ULSI, GLSI</h4>
+                <p style="margin: 0">
+                  Procesamiento en el orden de los GHz, multinúcleo,
+                  superescalar y vectorial. El Core i7 tiene 731 millones de
+                  transistores.
+                </p>
+              </div>
+            </div>
+
+            <div class="callout">
+              <strong>Ley de Moore:</strong> formulada por Gordon E. Moore
+              (cofundador de Intel) el 19 de abril de 1965, establece que
+              "aproximadamente cada dos años se duplica el número de
+              transistores en un circuito integrado". En 2007 el propio Moore
+              estimó que la ley dejaría de cumplirse en 10 o 15 años.
+            </div>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/ENIAC.jpg"
+                  alt="ENIAC"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>ENIAC: CPU a válvulas de vacío</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Transistor-die-KSY34-2.jpg"
+                  alt="Transistor"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Transistor (2ª generación)</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Intel_4004.jpg"
+                  alt="Intel 4004"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>
+                  Intel 4004: primer microprocesador (1971)
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 3.2 MICROPROCESADOR ===================== -->
+        <section class="unit" id="s2">
+          <div class="sec-head">
+            <span class="num">3.2</span>
+            <div>
+              <h2>El microprocesador y su memoria caché</h2>
+              <p class="lede">
+                Una CPU completa en un solo circuito, y el truco de velocidad
+                que la mantiene alimentada de datos.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <p>
+              El <span class="term">microprocesador</span> es el CI central más
+              complejo de un sistema informático: una CPU implementada en un
+              solo circuito, encargada de ejecutar todos los programas (sistema
+              operativo y aplicaciones), sólo mediante instrucciones de bajo
+              nivel.
+            </p>
+
+            <h3>3.2.1 — Componentes</h3>
+            <div class="grid-3">
+              <div class="card">
+                <p style="margin: 0">
+                  <strong>ALU</strong> y <strong>UC</strong>
+                </p>
+              </div>
+              <div class="card">
+                <p style="margin: 0">
+                  Registros internos y <strong>reloj</strong>
+                </p>
+              </div>
+              <div class="card">
+                <p style="margin: 0"><strong>Memoria caché</strong></p>
+              </div>
+              <div class="card">
+                <p style="margin: 0">
+                  <strong>FPU</strong> (Unidad de Punto Flotante): asiste a la
+                  ALU/UC en operaciones de coma flotante
+                </p>
+              </div>
+              <div class="card">
+                <p style="margin: 0">
+                  <strong>MicroROM</strong> (opcional): microprogramas para
+                  ejecutar instrucciones
+                </p>
+              </div>
+              <div class="card">
+                <p style="margin: 0">
+                  <strong>GPU</strong> (opcional): coprocesador gráfico
+                  integrado
+                </p>
+              </div>
+            </div>
+
+            <h3>3.2.2 — Memoria caché</h3>
+            <p>
+              La <span class="term">caché</span> es una memoria volátil de alta
+              tecnología (SRAM) usada para mejorar el rendimiento cuando
+              dispositivos de distinta velocidad deben trabajar juntos — por
+              ejemplo, un procesador rapidísimo (ns) y una RAM comparativamente
+              lenta (ms). Las cachés son ultrarrápidas, de poca capacidad y muy
+              caras.
+            </p>
+
+            <figure>
+              <svg
+                viewBox="0 0 560 130"
+                width="100%"
+                style="max-width: 520px; margin: 0 auto; display: block"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g font-family="IBM Plex Mono" font-size="11" fill="#eaf1ec">
+                  <rect
+                    x="10"
+                    y="20"
+                    width="90"
+                    height="45"
+                    fill="none"
+                    stroke="#6fe7d4"
+                  />
+                  <text x="55" y="46" text-anchor="middle" font-size="10">
+                    CPU
+                  </text>
+                  <rect
+                    x="230"
+                    y="20"
+                    width="90"
+                    height="45"
+                    fill="none"
+                    stroke="#93a89c"
+                  />
+                  <text x="275" y="46" text-anchor="middle" font-size="10">
+                    RAM
+                  </text>
+                  <line
+                    x1="100"
+                    y1="42"
+                    x2="230"
+                    y2="42"
+                    stroke="#e2725b"
+                    marker-end="url(#a)"
+                  />
+                  <text
+                    x="165"
+                    y="35"
+                    text-anchor="middle"
+                    font-size="9"
+                    fill="#e2725b"
+                  >
+                    transferencia lenta
+                  </text>
+
+                  <rect
+                    x="10"
+                    y="90"
+                    width="90"
+                    height="35"
+                    fill="none"
+                    stroke="#6fe7d4"
+                  />
+                  <text x="55" y="112" text-anchor="middle" font-size="10">
+                    CPU
+                  </text>
+                  <rect
+                    x="150"
+                    y="90"
+                    width="80"
+                    height="35"
+                    fill="none"
+                    stroke="#d6a24d"
+                  />
+                  <text x="190" y="112" text-anchor="middle" font-size="10">
+                    Caché
+                  </text>
+                  <rect
+                    x="380"
+                    y="90"
+                    width="90"
+                    height="35"
+                    fill="none"
+                    stroke="#93a89c"
+                  />
+                  <text x="425" y="112" text-anchor="middle" font-size="10">
+                    RAM
+                  </text>
+                  <line x1="100" y1="107" x2="150" y2="107" stroke="#6fe7d4" />
+                  <line
+                    x1="230"
+                    y1="107"
+                    x2="380"
+                    y2="107"
+                    stroke="#93a89c"
+                    stroke-dasharray="3 2"
+                  />
+                </g>
+              </svg>
+              <figcaption>
+                Sin caché, la CPU espera a la RAM lenta; con caché de por medio,
+                la mayoría de los accesos se resuelven a velocidad de CPU.
+              </figcaption>
+            </figure>
+
+            <p>
+              Cuando se produce un fallo (ausencia) en memoria principal, la
+              caché recibe el dato pedido y otros contiguos que el procesador
+              previsiblemente va a solicitar.
+            </p>
+            <div class="grid-2">
+              <div class="card">
+                <h4>Conexión en serie</h4>
+                <p style="margin: 0">
+                  Toda comunicación pasa por la caché; si el dato no está, ella
+                  misma pide a la memoria principal.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Conexión en paralelo</h4>
+                <p style="margin: 0">
+                  Cada petición va simultáneamente a caché y RAM. Si acierta la
+                  caché, se cancela la búsqueda en RAM (gana tiempo, pero satura
+                  el bus).
+                </p>
+              </div>
+            </div>
+
+            <h4>Jerarquía de caché</h4>
+            <p>
+              Aumentar el tamaño de la caché mejora la tasa de aciertos, pero
+              también el tiempo de acceso — por eso se usan niveles:
+              <strong>L1</strong> (pequeña y muy rápida) y
+              <strong>L2</strong> (mayor capacidad, algo más lenta, contiene
+              todo lo de L1 y más). En procesadores multinúcleo, la caché puede
+              ser <strong>privada</strong> por núcleo (AMD, en L2) o
+              <strong>compartida</strong> entre todos (Intel, en L2) — cada
+              esquema tiene sus ventajas y complejidades de diseño.
+            </p>
+            <p>
+              <strong>Ejemplos:</strong> el Itanium de Intel tiene 3 niveles de
+              caché con 300 millones de transistores (25 millones para el propio
+              microprocesador). El ARM Cortex-A7 tiene 4 núcleos, cada uno con 2
+              cachés L1 (datos e instrucciones) y una L2 compartida.
+            </p>
+          </div>
+        </section>
+
+        <!-- ===================== 3.3 PARADIGMAS ===================== -->
+        <section class="unit" id="s3">
+          <div class="sec-head">
+            <span class="num">3.3</span>
+            <div>
+              <h2>Paradigmas de diseño: CISC, RISC e híbridos</h2>
+              <p class="lede">
+                Dos filosofías opuestas para construir un microprocesador, y
+                cómo terminaron conviviendo.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <div class="grid-2">
+              <div class="card">
+                <h4>CISC — Complex Instruction Set Computers</h4>
+                <ul>
+                  <li>ROM de control interna (microcódigo)</li>
+                  <li>
+                    Instrucciones complejas: muchos ciclos por instrucción, pero
+                    un solo acceso a memoria
+                  </li>
+                  <li>
+                    125 a 350 instrucciones, de tamaño variable (1 a 20 CPI)
+                  </li>
+                  <li>~10 modos de direccionamiento</li>
+                  <li>Compatibilidad con modelos anteriores</li>
+                  <li>
+                    Ejemplos: Motorola 68000, Zilog Z80, familia Intel x86, AMD
+                    x86-64
+                  </li>
+                </ul>
+              </div>
+              <div class="card">
+                <h4>RISC — Reduced Instruction Set Computers</h4>
+                <ul>
+                  <li>Sólo ~100 instrucciones sencillas y de uso frecuente</li>
+                  <li>3 a 5 modos de direccionamiento</li>
+                  <li>1 CPI por instrucción</li>
+                  <li>
+                    Hardware más simple → permite duplicar unidades funcionales
+                  </li>
+                  <li>Usa la técnica de <strong>pipeline</strong></li>
+                  <li>Ejemplos: ARM, PowerPC, SPARC, MIPS, PA-RISC</li>
+                </ul>
+              </div>
+            </div>
+            <div class="callout">
+              <strong>¿Por qué surgió RISC?</strong> Tras dos décadas de CISC,
+              se observó que sólo el 25% de las instrucciones se usaba el 95%
+              del tiempo; el 75% restante casi no se utilizaba. RISC apostó por
+              programas más largos pero con instrucciones simples, compensando
+              con un hardware más económico y eficiente.
+            </div>
+
+            <h4>Pipeline (segmentación)</h4>
+            <p>
+              Técnica que divide cada instrucción en
+              <strong>segmentos o etapas</strong>, permitiendo que varias
+              instrucciones se ejecuten de forma concurrente: en cada ciclo de
+              reloj comienza una instrucción y termina otra. El tiempo total lo
+              determina la etapa más lenta, por lo que hay que balancear los
+              pasos. Más etapas no siempre mejora el rendimiento: aumenta la
+              lógica de control necesaria.
+            </p>
+
+            <figure>
+              <svg
+                viewBox="0 0 500 140"
+                width="100%"
+                style="max-width: 480px; margin: 0 auto; display: block"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g font-family="IBM Plex Mono" font-size="10" fill="#eaf1ec">
+                  <text x="10" y="20">Sin pipeline:</text>
+                  <rect
+                    x="120"
+                    y="8"
+                    width="40"
+                    height="20"
+                    fill="none"
+                    stroke="#93a89c"
+                  />
+                  <text x="140" y="22" text-anchor="middle" font-size="9">
+                    F1
+                  </text>
+                  <rect
+                    x="160"
+                    y="8"
+                    width="40"
+                    height="20"
+                    fill="none"
+                    stroke="#93a89c"
+                  />
+                  <text x="180" y="22" text-anchor="middle" font-size="9">
+                    E1
+                  </text>
+                  <rect
+                    x="200"
+                    y="8"
+                    width="40"
+                    height="20"
+                    fill="none"
+                    stroke="#93a89c"
+                  />
+                  <text x="220" y="22" text-anchor="middle" font-size="9">
+                    F2
+                  </text>
+                  <rect
+                    x="240"
+                    y="8"
+                    width="40"
+                    height="20"
+                    fill="none"
+                    stroke="#93a89c"
+                  />
+                  <text x="260" y="22" text-anchor="middle" font-size="9">
+                    E2
+                  </text>
+
+                  <text x="10" y="60">Con pipeline:</text>
+                  <rect
+                    x="120"
+                    y="48"
+                    width="40"
+                    height="20"
+                    fill="none"
+                    stroke="#6fe7d4"
+                  />
+                  <text x="140" y="62" text-anchor="middle" font-size="9">
+                    F1
+                  </text>
+                  <rect
+                    x="160"
+                    y="48"
+                    width="40"
+                    height="20"
+                    fill="none"
+                    stroke="#6fe7d4"
+                  />
+                  <text x="180" y="62" text-anchor="middle" font-size="9">
+                    E1
+                  </text>
+                  <rect
+                    x="160"
+                    y="72"
+                    width="40"
+                    height="20"
+                    fill="none"
+                    stroke="#d6a24d"
+                  />
+                  <text x="180" y="86" text-anchor="middle" font-size="9">
+                    F2
+                  </text>
+                  <rect
+                    x="200"
+                    y="72"
+                    width="40"
+                    height="20"
+                    fill="none"
+                    stroke="#d6a24d"
+                  />
+                  <text x="220" y="86" text-anchor="middle" font-size="9">
+                    E2
+                  </text>
+                  <rect
+                    x="200"
+                    y="96"
+                    width="40"
+                    height="20"
+                    fill="none"
+                    stroke="#e2725b"
+                  />
+                  <text x="220" y="110" text-anchor="middle" font-size="9">
+                    F3
+                  </text>
+                  <rect
+                    x="240"
+                    y="96"
+                    width="40"
+                    height="20"
+                    fill="none"
+                    stroke="#e2725b"
+                  />
+                  <text x="260" y="110" text-anchor="middle" font-size="9">
+                    E3
+                  </text>
+                </g>
+              </svg>
+              <figcaption>
+                Con pipeline, la búsqueda (F) de una instrucción se superpone
+                con la ejecución (E) de la anterior.
+              </figcaption>
+            </figure>
+
+            <h4>Tecnología híbrida</h4>
+            <p>
+              Desde el Pentium en adelante, los procesadores "híbridos"
+              transforman internamente las instrucciones CISC en instrucciones
+              RISC simples de longitud fija, que se ejecutan más rápido mediante
+              unidades de ejecución RISC — relativizando el antiguo debate
+              académico CISC vs. RISC.
+            </p>
+
+            <h4>Arquitectura clásica vs. moderna</h4>
+            <div class="grid-2">
+              <div class="card">
+                <h4>Von Neumann</h4>
+                <p style="margin: 0">
+                  Una única memoria comparte instrucciones y datos, con buses
+                  compartidos → efecto "cuello de botella" (no se puede
+                  superponer el acceso a datos e instrucciones). Corresponde al
+                  paradigma CISC.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Harvard</h4>
+                <p style="margin: 0">
+                  Memoria de datos y de instrucciones separadas, con buses
+                  independientes: la CPU puede leer la próxima instrucción
+                  mientras opera con datos de la actual. Corresponde al
+                  paradigma RISC.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 3.4 FAMILIAS ===================== -->
+        <section class="unit" id="s4">
+          <div class="sec-head">
+            <span class="num">3.4</span>
+            <div>
+              <h2>Familias y fabricantes de microprocesadores</h2>
+              <p class="lede">
+                x86 domina el escritorio; ARM domina el bolsillo.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <p>
+              Una <span class="term">familia de microprocesadores</span> es un
+              conjunto de modelos ligados por características comunes.
+              Principales familias: Intel, ARM, Apple, VIA, AMD (y otros:
+              Motorola, Sun, Compaq, IBM, Cyrix).
+            </p>
+
+            <h3>3.4.1 — Familia x86</h3>
+            <p>
+              Creada por Intel y licenciada a otras empresas (AMD, Cyrix, entre
+              otras) en sus primeros modelos. Su set de instrucciones es
+              <strong>CISC</strong>, con un núcleo común al que cada modelo
+              nuevo agrega extensiones.
+            </p>
+            <div class="grid-2">
+              <div class="card ok">
+                <h4>Fortaleza</h4>
+                <p style="margin: 0">
+                  Compatibilidad descendente: el software antiguo sigue
+                  funcionando al actualizar el procesador — la clave de su éxito
+                  comercial.
+                </p>
+              </div>
+              <div class="card bad">
+                <h4>Costo tecnológico</h4>
+                <p style="margin: 0">
+                  Hay que mantener la arquitectura y el repertorio de
+                  instrucciones de modelos anteriores, arrastrando también sus
+                  fallos.
+                </p>
+              </div>
+            </div>
+
+            <h3>3.4.2 — Microprocesadores ARM</h3>
+            <p>
+              <span class="term">ARM (Advanced RISC Machine)</span> es una
+              arquitectura RISC de 32 y 64 bits desarrollada por ARM Holdings
+              (hoy propiedad de NVIDIA, desde 2020), dominante en electrónica
+              móvil e integrada, de bajo consumo y costo. Se usó inicialmente en
+              las Acorn Archimedes (1987).
+            </p>
+            <p>
+              Gracias a su set de instrucciones simple, los procesadores ARM
+              consumen poca energía, logrando un gran equilibrio entre potencia
+              y duración de batería — usados en más del
+              <strong>90% de los dispositivos móviles</strong>: PDA, tablets,
+              celulares, videoconsolas, routers, discos duros, y placas como
+              Raspberry Pi. Ejemplos: ARM7, Cortex-A53/A57, Apple A12/A13/A14
+              Bionic.
+            </p>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Intel_processor_chip.jpg"
+                  alt="Procesador Intel"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Procesador de la familia x86 (Intel)</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/ARM_Cortex_chip.jpg"
+                  alt="Chip ARM"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Chip con arquitectura ARM</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Raspberry_Pi_4_Model_B_-_Top.jpg"
+                  alt="Raspberry Pi"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Raspberry Pi, basada en ARM</figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 3.5 FABRICACIÓN ===================== -->
+        <section class="unit" id="s5">
+          <div class="sec-head">
+            <span class="num">3.5</span>
+            <div>
+              <h2>Tecnologías de fabricación</h2>
+              <p class="lede">
+                Quién fabrica los chips, de qué están hechos los transistores y
+                por qué importan los nanómetros.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <h3>3.5.1 — Tipos de empresas fabricantes</h3>
+            <div class="grid-3">
+              <div class="card">
+                <h4>Fundición</h4>
+                <p style="margin: 0">
+                  No diseña, sólo fabrica para terceros. Ej: TSMC, UMC (Taiwán),
+                  SMIC (China).
+                </p>
+              </div>
+              <div class="card">
+                <h4>Fabless</h4>
+                <p style="margin: 0">
+                  Diseña, ensambla y comercializa, pero terceriza la
+                  fabricación. Ej: NVIDIA, Xilinx.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Fabricante integral</h4>
+                <p style="margin: 0">
+                  Diseña, fabrica y comercializa todo. Ej: Intel, AMD, Texas
+                  Instruments, STMicroelectronics.
+                </p>
+              </div>
+            </div>
+            <p>
+              Es común que fabricantes integrales subcontraten parte de su
+              producción a fundiciones (ej: AMD con TSMC), y que fabricantes
+              como IBM Microelectronics ofrezcan servicios de fundición a
+              empresas fabless.
+            </p>
+
+            <h3>3.5.2 — Transistores y litografía</h3>
+            <p>
+              El <span class="term">transistor</span>, inventado en los Bell
+              Labs en 1947, es la unidad mínima de un procesador: modifica el
+              flujo de corriente entre sus terminales para representar los 1 y 0
+              del sistema binario, actuando como interruptor. Millones de
+              transistores trabajando juntos permiten que un procesador realice
+              millones de operaciones por ciclo de reloj.
+            </p>
+            <p>
+              La <span class="term">litografía</span> indica, en nanómetros
+              (nm), el tamaño de las funciones fabricadas en el semiconductor.
+              Los primeros chips Intel (4004, 8008) rondaban los 10.000 nm (10
+              µm); hoy se fabrica en 7nm (Apple A12/A13, Kirin 980, Snapdragon
+              855) y hasta 5nm (Apple A14 Bionic).
+            </p>
+            <div class="grid-2">
+              <div class="card">
+                <h4>Ventajas de una mejor litografía</h4>
+                <ul>
+                  <li>Mayor densidad de transistores</li>
+                  <li>Menor consumo eléctrico</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h4>Y también</h4>
+                <ul>
+                  <li>Mejor arquitectura (más tareas por ciclo)</li>
+                  <li>Mayor velocidad posible</li>
+                </ul>
+              </div>
+            </div>
+
+            <h3>3.5.3 y 3.5.4 — FinFET y nuevas tecnologías</h3>
+            <p>
+              Para pasar de 22nm a 16nm, la industria migró de transistores
+              planos a <span class="term">FinFET</span> (transistor 3D),
+              permitiendo llegar hasta los 5nm actuales. Como la Ley de Moore se
+              acerca a los límites físicos del silicio, se investigan
+              alternativas: transistores
+              <strong>post-FinFET</strong> ("Gate-All-Around"), litografía
+              <strong>ultravioleta extrema (EUV)</strong> de Samsung (reduce
+              hasta un 50% el consumo), y materiales experimentales como
+              <strong>nanotubos de carbono</strong> y disulfuro de molibdeno —
+              ya se han fabricado transistores de laboratorio de hasta 1 átomo
+              de tamaño.
+            </p>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Silicon_wafer.jpg"
+                  alt="Oblea de silicio"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Oblea de silicio</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Semiconductor_fab_cleanroom.jpg"
+                  alt="Sala limpia de fabricación de semiconductores"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>
+                  Sala limpia de una fábrica de semiconductores
+                </figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/FinFET_transistor_structure.jpg"
+                  alt="Estructura FinFET"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Estructura de un transistor FinFET</figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 3.6 CONEXION ===================== -->
+        <section class="unit" id="s6">
+          <div class="sec-head">
+            <span class="num">3.6</span>
+            <div>
+              <h2>Conexión microprocesador–placa madre</h2>
+              <p class="lede">
+                Los tres esquemas de conexión física y cómo montar correctamente
+                un procesador.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <h3>3.6.1 — Tipos de socket</h3>
+            <div class="grid-3">
+              <div class="card">
+                <h4>PGA (Pin Grid Array)</h4>
+                <p style="margin: 0">
+                  Pines metálicos en la base del procesador que se insertan en
+                  el zócalo; una palanca los ancla. Ej: AMD Ryzen (AM4).
+                </p>
+              </div>
+              <div class="card">
+                <h4>BGA (Ball Grid Array)</h4>
+                <p style="margin: 0">
+                  Bolitas soldadas que hacen contacto con el zócalo. Ej: Intel
+                  para portátiles (BGA1440) y embebidos.
+                </p>
+              </div>
+              <div class="card">
+                <h4>LGA (Land Grid Array)</h4>
+                <p style="margin: 0">
+                  Superficies de contacto lisas; los pines están en la placa
+                  madre. Ej: Intel LGA 1151/2066, AMD TR4.
+                </p>
+              </div>
+            </div>
+
+            <h4>Algunos sockets Intel históricos y actuales</h4>
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>Socket</th>
+                  <th>Compatible con</th>
+                </tr>
+                <tr>
+                  <td>PGA 478</td>
+                  <td>Pentium 4, Celeron</td>
+                </tr>
+                <tr>
+                  <td>LGA 775</td>
+                  <td>Pentium 4, Celeron, Core 2</td>
+                </tr>
+                <tr>
+                  <td>LGA 1366</td>
+                  <td>i7 (primera generación)</td>
+                </tr>
+                <tr>
+                  <td>LGA 1156 / 1155</td>
+                  <td>i3, i5, i7, Xeon</td>
+                </tr>
+                <tr>
+                  <td>LGA 2011</td>
+                  <td>Xeon, i7 gama alta</td>
+                </tr>
+                <tr>
+                  <td>LGA 1200 / 1700</td>
+                  <td>Generaciones recientes de i9</td>
+                </tr>
+              </table>
+            </div>
+            <p class="lede" style="margin: 0">
+              El número del socket indica la cantidad de contactos (pines o
+              superficies).
+            </p>
+
+            <h3>3.6.2 — Placas con procesador integrado (soldado)</h3>
+            <div class="grid-2">
+              <div class="card ok">
+                <h4>Ventajas</h4>
+                <ul>
+                  <li>Formatos muy pequeños (MiniPC, HTPC)</li>
+                  <li>Muy bajo consumo</li>
+                  <li>Fácil de transportar e instalar</li>
+                  <li>
+                    Más económicas que una placa ITX con procesador aparte
+                  </li>
+                </ul>
+              </div>
+              <div class="card bad">
+                <h4>Desventajas</h4>
+                <ul>
+                  <li>No se puede actualizar el procesador</li>
+                  <li>Si falla, hay que cambiar toda la placa</li>
+                  <li>Potencia reducida</li>
+                  <li>Sin capacidad para GPU externa</li>
+                </ul>
+              </div>
+            </div>
+
+            <h3>3.6.3 — Montaje del microprocesador</h3>
+            <p>
+              Se realiza al armar un equipo nuevo, al reemplazar un procesador
+              defectuoso o por uno de mayor rendimiento (compatible con el
+              socket), o al extraerlo para limpieza (recomendado cada 6 meses
+              aproximadamente).
+            </p>
+            <ol class="steps">
+              <li>
+                Verificar que el socket sea el correcto; alinear el procesador
+                según la marca de orientación.
+              </li>
+              <li>
+                Presionar suavemente para asentarlo, y sujetarlo con los
+                elementos de anclaje de la placa.
+              </li>
+              <li>
+                Colocar el disipador y el cooler con su alimentación eléctrica.
+              </li>
+              <li>
+                Conectar la alimentación eléctrica del microprocesador (ATX12V).
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- ===================== 3.7 REFRIGERACION ===================== -->
+        <section class="unit" id="s7">
+          <div class="sec-head">
+            <span class="num">3.7</span>
+            <div>
+              <h2>Sistemas de refrigeración y pasta térmica</h2>
+              <p class="lede">
+                El componente que más calor disipa necesita, también, el sistema
+                de enfriamiento más cuidado.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <h3>3.7.1 — Temperatura de los microprocesadores</h3>
+            <div class="grid-3">
+              <div class="card">
+                <h4>PC de escritorio</h4>
+                <p style="margin: 0">
+                  30–65°C en uso normal; 70–95°C en cargas exigentes (juegos).
+                </p>
+              </div>
+              <div class="card">
+                <h4>Notebook</h4>
+                <p style="margin: 0">
+                  40–80°C durante una jornada laboral media (espacio reducido).
+                </p>
+              </div>
+              <div class="card">
+                <h4>Dispositivo móvil</h4>
+                <p style="margin: 0">30–45°C como máximo habitual.</p>
+              </div>
+            </div>
+            <div class="callout">
+              <strong>Umbral de alerta:</strong> nunca debería superar los
+              100°C. Entre 80–85°C sin estar bajo carga exigente ya se considera
+              una mala temperatura, aunque los procesadores modernos toleran
+              picos cortos de 100–103°C sin daño inmediato (aunque acortan su
+              vida útil).
+            </div>
+            <p>
+              <strong>Causas de temperaturas altas:</strong> alta carga de
+              procesamiento, overclocking, ventilador defectuoso, acumulación de
+              polvo, problemas de ventilación del gabinete.
+            </p>
+            <div class="callout cyan">
+              <strong>Thermal Throttling:</strong> mecanismo de protección que
+              reduce la frecuencia (o apaga el equipo, en el límite) cuando la
+              temperatura sube demasiado, sacrificando rendimiento para evitar
+              daños.
+            </div>
+
+            <h3>3.7.2 — Tipos de refrigeración según el equipo</h3>
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>Tipo de equipo</th>
+                  <th>Refrigeración típica</th>
+                </tr>
+                <tr>
+                  <td>PC media/baja gama</td>
+                  <td>
+                    Aire (pasiva: sólo disipador / activa: disipador + cooler) o
+                    líquida (watercooling)
+                  </td>
+                </tr>
+                <tr>
+                  <td>Portátiles y All in One</td>
+                  <td>Heatpipes (con disipadores, con o sin coolers)</td>
+                </tr>
+                <tr>
+                  <td>Embebidos y desechables</td>
+                  <td>Ninguna, o aire pasivo (difusor térmico o disipador)</td>
+                </tr>
+                <tr>
+                  <td>Alto rendimiento / gaming</td>
+                  <td>Heatpipes activos, líquida, o criogenia</td>
+                </tr>
+                <tr>
+                  <td>Experimental / laboratorio</td>
+                  <td>
+                    Metal líquido, termoeléctrica (Peltier), cambio de fase,
+                    viento iónico
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <h4>Refrigeración por aire</h4>
+            <p>
+              Un <strong>disipador</strong> (cobre o aluminio) en contacto con
+              el procesador aumenta la superficie de contacto con el aire
+              mediante láminas; uno o más <strong>ventiladores</strong> remueven
+              el calor absorbido. A mayor caudal de aire, mejor enfriamiento
+              pero más ruido — siempre hay que buscar un compromiso. Formas
+              típicas: monobloque, en torre, en abanico.
+            </p>
+
+            <h4>Refrigeración líquida (watercooling)</h4>
+            <p>
+              Más fiable pero más compleja, con mantenimiento periódico.
+              Componentes: depósito, bloque de agua (sobre el componente a
+              enfriar), bomba, radiador (intercambiador), ventiladores y
+              mangueras. Tipos: <strong>AIO</strong> (todo en uno, listo para
+              instalar) y <strong>bucle personalizado</strong>. Temperaturas
+              típicas: desde 5°C en reposo hasta 60°C con overclocking fuerte.
+            </p>
+
+            <h4>Refrigeración con heatpipes</h4>
+            <p>
+              Tubo de alta conductividad que combina conducción térmica con un
+              cambio de fase líquido-vapor, muy eficiente. El chip calienta un
+              extremo (evapora el líquido), el vapor viaja y se enfría en las
+              aletas, se condensa y regresa — un ciclo continuo. Existen
+              <strong>pasivos</strong> (silenciosos, sólo tubos y disipador) y
+              <strong>activos</strong> (con ventilador, para alto rendimiento).
+              Es el sistema más usado en notebooks: reduce ruido, consumo y
+              permite equipos más delgados.
+            </p>
+
+            <h4>Sistemas experimentales</h4>
+            <div class="grid-2">
+              <div class="card">
+                <h4>Criogenia</h4>
+                <p style="margin: 0">
+                  Nitrógeno líquido (-196°C) o hielo seco (-78°C) aplicados
+                  directamente. Sólo para pruebas de laboratorio de overclocking
+                  extremo.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Termoeléctrica (Peltier)</h4>
+                <p style="margin: 0">
+                  Usa el efecto Peltier: al aplicar voltaje entre dos
+                  materiales, un lado se enfría y el otro se calienta. Requiere
+                  refrigeración complementaria.
+                </p>
+              </div>
+            </div>
+
+            <h3>3.7.3 — Pasta térmica</h3>
+            <p>
+              Sustancia que mejora la transmisión de calor entre el chip y el
+              sistema de enfriamiento, rellenando las imperfecciones
+              microscópicas de contacto. Tipos:
+              <strong>cerámicas</strong> (silicona + óxido de zinc, 0,7–0,9
+              W/m·K, económicas) y <strong>metálicas</strong> (plata, oro-cobre,
+              diamante; 2–3 W/m·K, más caras y mejores conductoras).
+            </p>
+            <h4>Procedimiento para cambiar la pasta térmica</h4>
+            <ol class="steps">
+              <li>Elegir la pasta térmica adecuada.</li>
+              <li>
+                Limpiar la superficie del microprocesador y el disipador con
+                alcohol concentrado (70-90%), evitando tocarla luego con los
+                dedos.
+              </li>
+              <li>
+                Aplicar una capa fina y pareja de pasta (usando guantes de látex
+                sin polvo), sin dejar burbujas.
+              </li>
+              <li>
+                Instalar el disipador con una leve inclinación y presión
+                uniforme; conectar el cooler y su alimentación.
+              </li>
+              <li>
+                Encender, ingresar a la BIOS y verificar que la temperatura
+                ronde los 40°C.
+              </li>
+            </ol>
+
+            <h3>3.7.10 — TDP (Thermal Design Power)</h3>
+            <p>
+              El <span class="term">TDP</span> indica, en watts, la cantidad
+              máxima de calor esperada de un componente en uso intenso — no es
+              lo mismo que el consumo eléctrico. Permite elegir el sistema de
+              refrigeración apropiado. Intel mide el TDP después del período de
+              Turbo Boost (~30 seg); AMD mide el máximo real bajo carga total,
+              incluyendo picos boost.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>Categoría</th>
+                  <th>TDP típico</th>
+                </tr>
+                <tr>
+                  <td>Workstation</td>
+                  <td>165–280 W</td>
+                </tr>
+                <tr>
+                  <td>Gama alta escritorio</td>
+                  <td>85–125 W</td>
+                </tr>
+                <tr>
+                  <td>Escritorio básico</td>
+                  <td>35–65 W</td>
+                </tr>
+                <tr>
+                  <td>Portátiles</td>
+                  <td>15–45 W</td>
+                </tr>
+                <tr>
+                  <td>Dispositivos móviles</td>
+                  <td>3–10 W</td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="photo-row">
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/CPU_heatsink_and_fan.jpg"
+                  alt="Disipador y cooler"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>
+                  Disipador + cooler (refrigeración por aire)
+                </figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/AIO_liquid_cooler.jpg"
+                  alt="Refrigeración líquida AIO"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Kit de refrigeración líquida AIO</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="https://commons.wikimedia.org/wiki/Special:FilePath/Thermal_paste_application.jpg"
+                  alt="Aplicación de pasta térmica"
+                  onerror="this.closest('figure').style.display = 'none'"
+                />
+                <figcaption>Aplicación de pasta térmica</figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 3.8 OVERCLOCKING ===================== -->
+        <section class="unit" id="s8">
+          <div class="sec-head">
+            <span class="num">3.8</span>
+            <div>
+              <h2>Overclocking</h2>
+              <p class="lede">
+                Exprimir el procesador más allá de lo que garantiza el
+                fabricante — con sus beneficios y sus riesgos.
+              </p>
+            </div>
+          </div>
+          <div class="content wide">
+            <h3>3.8.1 — Cálculo de la frecuencia del procesador</h3>
+            <div
+              class="callout cyan"
+              style="
+                text-align: center;
+                font-family: var(--serif-mono);
+                font-size: 16px;
+              "
+            >
+              Frecuencia del procesador = Bus frontal (FSB/QPI/HT) ×
+              Multiplicador
+            </div>
+            <p>
+              Ejemplo: un procesador AMD Athlon XP con multiplicador x5 y bus
+              frontal de 166 MHz alcanza 830 MHz. Otro ejemplo: base de 100 MHz
+              y multiplicador 35 → 3,5 GHz por núcleo.
+            </p>
+
+            <h3>3.8.2 — ¿Qué es el overclocking?</h3>
+            <p>
+              <span class="term">Overclocking</span> es la técnica de aumentar
+              la frecuencia del reloj de un componente para obtener mayor
+              rendimiento, por encima de las especificaciones del fabricante.
+              Intel identifica sus procesadores desbloqueados con la letra
+              <strong>K</strong>; en AMD, toda la gama FX viene desbloqueada de
+              fábrica.
+            </p>
+
+            <h3>3.8.3 — Técnicas</h3>
+            <div class="grid-3">
+              <div class="card">
+                <h4>Aumentar el FSB</h4>
+                <p style="margin: 0">
+                  Sube también la frecuencia de otros buses (PCI/AGP) — riesgo
+                  de inestabilidad si no la soportan.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Aumentar el multiplicador</h4>
+                <p style="margin: 0">
+                  No afecta a otros buses; es la técnica más segura y habitual
+                  en procesadores desbloqueados.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Ambos combinados</h4>
+                <p style="margin: 0">
+                  Sólo disponible en algunos procesadores AMD.
+                </p>
+              </div>
+            </div>
+            <p>
+              Procedimiento general: acceder a BIOS/UEFI, ubicar los parámetros
+              de frecuencia del procesador (nombres variables según fabricante),
+              modificar el valor de a pequeños incrementos, guardar y reiniciar,
+              verificando estabilidad en cada paso.
+            </p>
+
+            <h3>3.8.4 — Beneficios, desventajas y consecuencias</h3>
+            <div class="grid-2">
+              <div class="card ok">
+                <h4>Beneficio</h4>
+                <p style="margin: 0">
+                  Mayor capacidad de procesamiento sin cambiar de hardware.
+                </p>
+              </div>
+              <div class="card bad">
+                <h4>Costos</h4>
+                <ul>
+                  <li>Mayor calor y consumo eléctrico</li>
+                  <li>Requiere refrigeración específica (más cara)</li>
+                  <li>Acorta la vida útil del procesador</li>
+                  <li>Puede generar inestabilidad del equipo</li>
+                </ul>
+              </div>
+            </div>
+            <table>
+              <tr>
+                <th>Síntoma tras el overclock</th>
+                <th>Qué hacer</th>
+              </tr>
+              <tr>
+                <td>El sistema no arranca</td>
+                <td>Resetear la BIOS a valores de fábrica</td>
+              </tr>
+              <tr>
+                <td>El sistema emite pitidos</td>
+                <td>Consultar el código en el manual y resetear la BIOS</td>
+              </tr>
+              <tr>
+                <td>Arranca pero se congela bajo carga</td>
+                <td>Reducir FSB/multiplicador o mejorar la refrigeración</td>
+              </tr>
+            </table>
+
+            <h3>3.8.5 — Qué se necesita para hacer overclocking</h3>
+            <ul>
+              <li>
+                Procesador desbloqueado (K en Intel; toda la gama FX en AMD)
+              </li>
+              <li>
+                Placa madre con chipset preparado (AMD lo permite en sus 3
+                gamas; Intel sólo en placas de alta gama)
+              </li>
+              <li>
+                Sistema de refrigeración especial (torre potente o kit AIO)
+              </li>
+              <li>Pasta térmica de mayor calidad</li>
+              <li>
+                Software de monitoreo (ej: CPU-Z) para vigilar velocidad de
+                reloj y voltaje
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===================== Q&A ===================== -->
+        <section class="unit" id="s9">
+          <div class="sec-head">
+            <span class="num">✎</span>
+            <div>
+              <h2>Preguntas para la clase</h2>
+              <p class="lede">
+                Espacio de participación: usá el modo "pregunta al azar" para
+                proyectar una consigna a la vez.
+              </p>
+            </div>
+          </div>
+
+          <div class="content wide">
+            <div class="qa-toolbar">
+              <button class="btn" id="btnRandom">Nueva pregunta al azar</button>
+              <button class="btn secondary" id="btnReset">
+                Reiniciar puntaje
+              </button>
+              <span class="score-pill"
+                >Aciertos de la clase: <b id="scoreVal">0</b> /
+                <span id="scoreTotal">0</span></span
+              >
+            </div>
+
+            <div class="spotlight" id="spotlight">
+              <span class="cat">Elegí una consigna</span>
+              <p class="qtext">
+                Tocá "Nueva pregunta al azar" para empezar la ronda de preguntas
+                con el curso.
+              </p>
+            </div>
+
+            <h3 style="margin-top: 40px">Para debatir en grupo</h3>
+            <div class="debate-list" id="debateList"></div>
+          </div>
+        </section>
+
+        <footer>
+          Instalación y Organización de la Computadora — Tecnicatura en
+          Informática de Gestión (Plan 2007) · Facultad Regional Orán, UNSa ·
+          Material de cátedra
+        </footer>
+      </main>
     </div>
 
-    <!-- ===================== 3.1 ARQUITECTURA CPU ===================== -->
-    <section class="unit" id="s1">
-      <div class="sec-head">
-        <span class="num">3.1</span>
-        <div>
-          <h2>La Unidad Central de Procesamiento: su arquitectura</h2>
-          <p class="lede">El corazón de cualquier dispositivo programable, desde una calculadora hasta una supercomputadora.</p>
-        </div>
-      </div>
-      <div class="content wide">
-        <p>La <span class="term">CPU (Central Processing Unit)</span> o procesador es el hardware que interpreta las instrucciones de un programa, realizando las operaciones aritméticas, lógicas y de entrada/salida del sistema. Su forma e implementación han cambiado mucho, pero su operación fundamental sigue siendo la misma.</p>
-        <div class="grid-3">
-          <div class="card"><h4>Multiprocesamiento</h4><p style="margin:0">Una computadora puede tener más de una CPU.</p></div>
-          <div class="card"><h4>Multinúcleo</h4><p style="margin:0">Un circuito integrado puede contener varias CPU en un solo chip.</p></div>
-          <div class="card"><h4>SoC</h4><p style="margin:0">Un chip que contiene la CPU y también los periféricos: sistema en un chip.</p></div>
-        </div>
+    <script>
+      /* ---------------- scrollspy ---------------- */
+      const links = document.querySelectorAll("nav.toc a");
+      const sections = [...links].map((l) =>
+        document.querySelector(l.getAttribute("href")),
+      );
+      function onScroll() {
+        let idx = 0;
+        const y = window.scrollY + 140;
+        sections.forEach((s, i) => {
+          if (s && s.offsetTop <= y) idx = i;
+        });
+        links.forEach((l) => l.classList.remove("active"));
+        if (links[idx]) links[idx].classList.add("active");
+      }
+      window.addEventListener("scroll", onScroll);
+      onScroll();
 
-        <h4>Unidades de rendimiento</h4>
-        <div class="table-wrap">
-        <table>
-          <tr><th>Unidad</th><th>Significado</th></tr>
-          <tr><td>CPI</td><td>Ciclos promedio que tarda en ejecutarse cada instrucción</td></tr>
-          <tr><td>MIPS nativos</td><td>Millones de instrucciones ejecutadas por segundo</td></tr>
-          <tr><td>FLOPS</td><td>Operaciones en coma flotante por segundo</td></tr>
-        </table>
-        </div>
-        <p>Todo procesador está gobernado por un <span class="term">reloj del sistema</span>, cuya velocidad se mide en Hz. El reloj emite pulsos eléctricos a intervalos constantes (ciclos) que marcan el ritmo de cada paso de la instrucción. La <strong>frecuencia</strong> mide cuántos ciclos ocurren por segundo (Hz = 1/s); el <strong>período</strong> es el tiempo de un ciclo completo, la inversa de la frecuencia.</p>
+      /* ---------------- mobile nav toggle ---------------- */
+      const mobileToggle = document.getElementById("mobileToggle");
+      if (mobileToggle) {
+        mobileToggle.addEventListener("click", () => {
+          document.getElementById("sidebar").classList.toggle("open");
+        });
+      }
 
-        <h3>3.1.2 — Componentes de un procesador</h3>
-        <div class="grid-2">
-          <div class="card"><h4>ALU (Unidad Aritmético-Lógica)</h4><p style="margin:0">Realiza las operaciones aritméticas o lógicas que le ordena la UC, auxiliada por registros (acumuladores) para datos y resultados transitorios.</p></div>
-          <div class="card"><h4>CU (Unidad de Control)</h4><p style="margin:0">Secuencia y ordena la ejecución de las instrucciones del programa: las interpreta y genera las señales de control adecuadas.</p></div>
-        </div>
-        <p><strong>Registros internos:</strong> almacenan temporalmente datos de la instrucción en curso y las próximas a ejecutar (acumuladores, de control, de direcciones). El tamaño de los registros define la <strong>arquitectura del procesador</strong>: el tamaño de los datos, el ancho del bus interno/externo y la organización de la memoria.</p>
-        <p>Todos los componentes se interconectan mediante <span class="term">buses internos</span> (control, datos, direcciones), que a su vez se conectan a los buses externos para comunicarse con memoria, E/S y almacenamiento.</p>
+      /* ---------------- Q&A data ---------------- */
+      const quiz = [
+        {
+          cat: "CPU",
+          q: "¿Cómo se llama a un chip que contiene la CPU y también los periféricos y otros componentes del sistema?",
+          opts: [
+            "Multiprocesador",
+            "Sistema en un chip (SoC)",
+            "Coprocesador",
+            "Chipset",
+          ],
+          correct: 1,
+          exp: "Un SoC (System on a Chip) integra la CPU junto con periféricos y otros componentes en un solo circuito integrado.",
+        },
+        {
+          cat: "Componentes",
+          q: "¿Cuál es la función de la Unidad de Control (UC) dentro del procesador?",
+          opts: [
+            "Realizar operaciones aritméticas",
+            "Secuenciar y ordenar la ejecución de las instrucciones",
+            "Almacenar datos permanentemente",
+            "Enfriar el procesador",
+          ],
+          correct: 1,
+          exp: "La Unidad de Control interpreta cada instrucción y genera las señales de control para que se ejecute en el orden correcto.",
+        },
+        {
+          cat: "Escalas de integración",
+          q: "¿Qué escala de integración corresponde a los microprocesadores modernos como el Core i9?",
+          opts: ["SSI", "MSI", "LSI", "GLSI"],
+          correct: 3,
+          exp: "Los procesadores actuales, como el Core i9, corresponden a la escala GLSI (Giga Large Scale Integration).",
+        },
+        {
+          cat: "Evolución",
+          q: "¿Cuál fue el primer microprocesador completo montado en un solo circuito integrado?",
+          opts: ["Intel Core i7", "Intel 4004", "Intel Pentium", "AMD Athlon"],
+          correct: 1,
+          exp: "En 1971, Intel logró montar el primer microprocesador completo en un CI: el 4004, con 2250 transistores.",
+        },
+        {
+          cat: "Ley de Moore",
+          q: "¿Qué establece aproximadamente la Ley de Moore?",
+          opts: [
+            "Que el precio de los chips baja cada año",
+            "Que el número de transistores en un CI se duplica cada dos años aproximadamente",
+            "Que la velocidad del reloj se duplica cada año",
+            "Que el consumo eléctrico se reduce a la mitad cada mes",
+          ],
+          correct: 1,
+          exp: "La Ley de Moore (1965) establece que la cantidad de transistores en un circuito integrado se duplica aproximadamente cada dos años.",
+        },
+        {
+          cat: "Caché",
+          q: "¿Por qué se usa memoria caché entre el procesador y la RAM?",
+          opts: [
+            "Para ahorrar espacio en el gabinete",
+            "Porque la RAM es mucho más lenta que el procesador",
+            "Porque la RAM no es volátil",
+            "Para reemplazar al disco duro",
+          ],
+          correct: 1,
+          exp: "La caché compensa la diferencia de velocidad entre el procesador (muy rápido) y la RAM (comparativamente lenta), mejorando el rendimiento general.",
+        },
+        {
+          cat: "Caché",
+          q: "En la conexión en paralelo entre caché y memoria principal, ¿qué ventaja tiene frente a la conexión en serie?",
+          opts: [
+            "Usa menos energía",
+            "Si falla la caché, no hay penalización de tiempo porque la RAM ya venía buscando el dato",
+            "Es más barata de implementar",
+            "No necesita bus",
+          ],
+          correct: 1,
+          exp: "En la conexión en paralelo, la petición va simultáneamente a caché y RAM; si la caché falla, la RAM ya viene trabajando y no se pierde tiempo extra.",
+        },
+        {
+          cat: "CISC vs RISC",
+          q: "¿Cuál es una característica típica del paradigma CISC?",
+          opts: [
+            "Instrucciones simples y de 1 CPI cada una",
+            "Instrucciones complejas que pueden requerir hasta 20 CPI",
+            "Sin ROM de control",
+            "Sólo 3 a 5 modos de direccionamiento",
+          ],
+          correct: 1,
+          exp: "CISC usa instrucciones complejas que pueden tardar entre 1 y 20 ciclos de procesamiento (CPI), pero requieren un solo acceso a memoria.",
+        },
+        {
+          cat: "CISC vs RISC",
+          q: "¿Qué técnica de implementación es característica de los procesadores RISC?",
+          opts: [
+            "Microcódigo extendido",
+            "Pipeline (segmentación)",
+            "ROM de control obligatoria",
+            "Instrucciones de longitud variable",
+          ],
+          correct: 1,
+          exp: "El paradigma RISC aplica la técnica de pipeline, ejecutando de forma concurrente distintas etapas de varias instrucciones.",
+        },
+        {
+          cat: "Arquitecturas",
+          q: "¿Qué arquitectura usa memorias separadas para datos e instrucciones, evitando el 'cuello de botella' de Von Neumann?",
+          opts: [
+            "Arquitectura Harvard",
+            "Arquitectura x86",
+            "Arquitectura CISC clásica",
+            "Arquitectura de bus único",
+          ],
+          correct: 0,
+          exp: "La arquitectura Harvard usa buses y memorias independientes para datos e instrucciones, permitiendo accesos simultáneos.",
+        },
+        {
+          cat: "Familias",
+          q: "¿Qué arquitectura domina más del 90% de los dispositivos móviles actuales?",
+          opts: ["x86", "ARM", "PowerPC", "SPARC"],
+          correct: 1,
+          exp: "ARM, gracias a su bajo consumo, domina ampliamente el mercado de dispositivos móviles.",
+        },
+        {
+          cat: "Fabricación",
+          q: "¿Qué tipo de empresa diseña y comercializa chips pero terceriza su fabricación a una fundición?",
+          opts: ["Fabless", "Fundición", "Fabricante integral", "OEM"],
+          correct: 0,
+          exp: "Una empresa fabless (como NVIDIA) diseña y comercializa circuitos integrados, pero encarga su fabricación a una fundición como TSMC.",
+        },
+        {
+          cat: "Litografía",
+          q: "¿Qué significa que un procesador esté fabricado con tecnología de '5 nm'?",
+          opts: [
+            "Que mide 5 nm de largo",
+            "Que sus componentes electrónicos se fabrican en escalas de 5 nanómetros",
+            "Que consume 5 nanovatios",
+            "Que tiene 5 núcleos",
+          ],
+          correct: 1,
+          exp: "La litografía en nanómetros indica el tamaño de las funciones fabricadas en el semiconductor; a menor número, mayor densidad de transistores.",
+        },
+        {
+          cat: "Sockets",
+          q: "¿Qué tipo de socket usa bolitas soldadas al procesador para hacer contacto con el zócalo?",
+          opts: ["PGA", "BGA", "LGA", "ATX"],
+          correct: 1,
+          exp: "BGA (Ball Grid Array) usa bolitas soldadas; es común en CPU de portátiles y equipos embebidos.",
+        },
+        {
+          cat: "Placas integradas",
+          q: "¿Cuál es una desventaja de una placa madre con procesador soldado (integrado)?",
+          opts: [
+            "Consume mucha energía",
+            "No se puede actualizar el procesador",
+            "Es muy grande",
+            "No admite RAM",
+          ],
+          correct: 1,
+          exp: "En una placa con procesador integrado, si éste falla o se quiere actualizar, hay que cambiar toda la placa.",
+        },
+        {
+          cat: "Refrigeración",
+          q: "¿Qué sistema de refrigeración es el más común en notebooks?",
+          opts: [
+            "Refrigeración líquida AIO",
+            "Heatpipes",
+            "Criogenia con nitrógeno líquido",
+            "Refrigeración termoeléctrica",
+          ],
+          correct: 1,
+          exp: "Las notebooks usan mayormente heatpipes para transportar el calor del procesador y el chipset lejos de ellos, con o sin cooler adicional.",
+        },
+        {
+          cat: "Pasta térmica",
+          q: "¿Para qué se usa la pasta térmica entre el procesador y el disipador?",
+          opts: [
+            "Para aislar eléctricamente el procesador",
+            "Para mejorar la transmisión de calor rellenando imperfecciones de contacto",
+            "Para limpiar el polvo",
+            "Para sujetar el disipador",
+          ],
+          correct: 1,
+          exp: "La pasta térmica rellena los huecos microscópicos entre las superficies de contacto, mejorando la transferencia de calor.",
+        },
+        {
+          cat: "TDP",
+          q: "¿A qué se refiere el TDP de un procesador?",
+          opts: [
+            "Al consumo eléctrico exacto en cualquier momento",
+            "A la cantidad máxima de calor esperada en uso intenso",
+            "A la temperatura mínima de arranque",
+            "Al voltaje de alimentación",
+          ],
+          correct: 1,
+          exp: "El TDP (Thermal Design Power) indica el calor máximo esperado del componente en un escenario de uso intenso, no el consumo eléctrico.",
+        },
+        {
+          cat: "Overclocking",
+          q: "¿Cuál de estas técnicas de overclocking es la más segura, al no afectar otros buses?",
+          opts: [
+            "Aumentar el FSB",
+            "Aumentar el multiplicador",
+            "Aumentar el voltaje sin límite",
+            "Quitar el disipador",
+          ],
+          correct: 1,
+          exp: "Aumentar el multiplicador no afecta a otros buses (como PCI o AGP), a diferencia de aumentar el FSB.",
+        },
+      ];
 
-        <h3>3.1.3 — Escalas de integración</h3>
-        <p>Un <span class="term">circuito integrado (CI)</span> es una estructura de pocos milímetros cuadrados de material semiconductor (generalmente silicio) sobre la que se fabrican circuitos electrónicos mediante fotolitografía, protegida por un encapsulado. Con transistores se construyen compuertas lógicas, y con compuertas, circuitos mayores.</p>
-        <div class="table-wrap">
-        <table>
-          <tr><th>Escala</th><th>Sigla</th><th>Ejemplo</th></tr>
-          <tr><td>Pequeña escala</td><td>SSI</td><td>Compuertas lógicas elementales</td></tr>
-          <tr><td>Escala media</td><td>MSI</td><td>Codificadores, multiplexores, contadores</td></tr>
-          <tr><td>Gran escala</td><td>LSI</td><td>Memorias, microprocesadores (ej: Intel 8080)</td></tr>
-          <tr><td>Muy gran escala</td><td>VLSI</td><td>Tecnología de los años 80</td></tr>
-          <tr><td>Ultra escala</td><td>ULSI</td><td>Pentium 4</td></tr>
-          <tr><td>Giga escala</td><td>GLSI</td><td>Procesadores Core i9</td></tr>
-        </table>
-        </div>
+      const debate = [
+        "¿Por qué creen que, a pesar de las ventajas técnicas de RISC, la familia x86 (CISC) sigue dominando las PC de escritorio?",
+        "Si la Ley de Moore se está acercando a sus límites físicos, ¿qué caminos les parecen más prometedores para seguir mejorando el rendimiento: nuevos materiales, nuevas arquitecturas, o software más eficiente?",
+        "¿Qué ventajas y qué riesgos reales tiene el overclocking para un usuario que arma su propia PC gamer?",
+        "Comparando los sistemas de refrigeración por aire y líquida, ¿en qué escenarios recomendarían cada uno y por qué?",
+        "¿Por qué ARM eligió priorizar el bajo consumo sobre la máxima potencia bruta, y qué consecuencias tuvo esa decisión en el mercado de dispositivos móviles?",
+      ];
 
-        <h3>3.1.4 — Evolución de las CPU</h3>
-        <div class="grid-2">
-          <div class="card"><h4>1ª generación — relés y tubos de vacío</h4><p style="margin:0">Computadoras como ABC (1937-42), ENIAC, EDVAC y Mark I. Los CPU a tubo eran más rápidos pero fallaban en promedio cada 8 horas; los de relés fallaban menos pero eran más lentos.</p></div>
-          <div class="card"><h4>2ª generación — transistores y CIs SSI/MSI</h4><p style="margin:0">Décadas de 1950-60: mayor capacidad de procesamiento y confiabilidad, con menor tamaño y consumo.</p></div>
-          <div class="card"><h4>3ª generación — microprocesadores LSI</h4><p style="margin:0">1971: Intel monta el primer procesador completo en un CI, el <strong>4004</strong> (2.250 transistores, 740 kHz).</p></div>
-          <div class="card"><h4>4ª generación — VLSI, ULSI, GLSI</h4><p style="margin:0">Procesamiento en el orden de los GHz, multinúcleo, superescalar y vectorial. El Core i7 tiene 731 millones de transistores.</p></div>
-        </div>
+      let score = 0,
+        total = 0;
+      document.getElementById("scoreTotal").textContent = quiz.length;
 
-        <div class="callout"><strong>Ley de Moore:</strong> formulada por Gordon E. Moore (cofundador de Intel) el 19 de abril de 1965, establece que "aproximadamente cada dos años se duplica el número de transistores en un circuito integrado". En 2007 el propio Moore estimó que la ley dejaría de cumplirse en 10 o 15 años.</div>
+      let bag = [];
+      function refillBag() {
+        bag = quiz.map((_, i) => i);
+      }
+      refillBag();
 
-        <div class="photo-row">
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/ENIAC.jpg" alt="ENIAC" onerror="this.closest('figure').style.display='none'"><figcaption>ENIAC: CPU a válvulas de vacío</figcaption></figure>
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Transistor-die-KSY34-2.jpg" alt="Transistor" onerror="this.closest('figure').style.display='none'"><figcaption>Transistor (2ª generación)</figcaption></figure>
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Intel_4004.jpg" alt="Intel 4004" onerror="this.closest('figure').style.display='none'"><figcaption>Intel 4004: primer microprocesador (1971)</figcaption></figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 3.2 MICROPROCESADOR ===================== -->
-    <section class="unit" id="s2">
-      <div class="sec-head">
-        <span class="num">3.2</span>
-        <div>
-          <h2>El microprocesador y su memoria caché</h2>
-          <p class="lede">Una CPU completa en un solo circuito, y el truco de velocidad que la mantiene alimentada de datos.</p>
-        </div>
-      </div>
-      <div class="content wide">
-        <p>El <span class="term">microprocesador</span> es el CI central más complejo de un sistema informático: una CPU implementada en un solo circuito, encargada de ejecutar todos los programas (sistema operativo y aplicaciones), sólo mediante instrucciones de bajo nivel.</p>
-
-        <h3>3.2.1 — Componentes</h3>
-        <div class="grid-3">
-          <div class="card"><p style="margin:0"><strong>ALU</strong> y <strong>UC</strong></p></div>
-          <div class="card"><p style="margin:0">Registros internos y <strong>reloj</strong></p></div>
-          <div class="card"><p style="margin:0"><strong>Memoria caché</strong></p></div>
-          <div class="card"><p style="margin:0"><strong>FPU</strong> (Unidad de Punto Flotante): asiste a la ALU/UC en operaciones de coma flotante</p></div>
-          <div class="card"><p style="margin:0"><strong>MicroROM</strong> (opcional): microprogramas para ejecutar instrucciones</p></div>
-          <div class="card"><p style="margin:0"><strong>GPU</strong> (opcional): coprocesador gráfico integrado</p></div>
-        </div>
-
-        <h3>3.2.2 — Memoria caché</h3>
-        <p>La <span class="term">caché</span> es una memoria volátil de alta tecnología (SRAM) usada para mejorar el rendimiento cuando dispositivos de distinta velocidad deben trabajar juntos — por ejemplo, un procesador rapidísimo (ns) y una RAM comparativamente lenta (ms). Las cachés son ultrarrápidas, de poca capacidad y muy caras.</p>
-
-        <figure>
-          <svg viewBox="0 0 560 130" width="100%" style="max-width:520px; margin:0 auto; display:block" xmlns="http://www.w3.org/2000/svg">
-            <g font-family="IBM Plex Mono" font-size="11" fill="#eaf1ec">
-              <rect x="10" y="20" width="90" height="45" fill="none" stroke="#6fe7d4"/><text x="55" y="46" text-anchor="middle" font-size="10">CPU</text>
-              <rect x="230" y="20" width="90" height="45" fill="none" stroke="#93a89c"/><text x="275" y="46" text-anchor="middle" font-size="10">RAM</text>
-              <line x1="100" y1="42" x2="230" y2="42" stroke="#e2725b" marker-end="url(#a)"/>
-              <text x="165" y="35" text-anchor="middle" font-size="9" fill="#e2725b">transferencia lenta</text>
-
-              <rect x="10" y="90" width="90" height="35" fill="none" stroke="#6fe7d4"/><text x="55" y="112" text-anchor="middle" font-size="10">CPU</text>
-              <rect x="150" y="90" width="80" height="35" fill="none" stroke="#d6a24d"/><text x="190" y="112" text-anchor="middle" font-size="10">Caché</text>
-              <rect x="380" y="90" width="90" height="35" fill="none" stroke="#93a89c"/><text x="425" y="112" text-anchor="middle" font-size="10">RAM</text>
-              <line x1="100" y1="107" x2="150" y2="107" stroke="#6fe7d4"/>
-              <line x1="230" y1="107" x2="380" y2="107" stroke="#93a89c" stroke-dasharray="3 2"/>
-            </g>
-          </svg>
-          <figcaption>Sin caché, la CPU espera a la RAM lenta; con caché de por medio, la mayoría de los accesos se resuelven a velocidad de CPU.</figcaption>
-        </figure>
-
-        <p>Cuando se produce un fallo (ausencia) en memoria principal, la caché recibe el dato pedido y otros contiguos que el procesador previsiblemente va a solicitar.</p>
-        <div class="grid-2">
-          <div class="card"><h4>Conexión en serie</h4><p style="margin:0">Toda comunicación pasa por la caché; si el dato no está, ella misma pide a la memoria principal.</p></div>
-          <div class="card"><h4>Conexión en paralelo</h4><p style="margin:0">Cada petición va simultáneamente a caché y RAM. Si acierta la caché, se cancela la búsqueda en RAM (gana tiempo, pero satura el bus).</p></div>
-        </div>
-
-        <h4>Jerarquía de caché</h4>
-        <p>Aumentar el tamaño de la caché mejora la tasa de aciertos, pero también el tiempo de acceso — por eso se usan niveles: <strong>L1</strong> (pequeña y muy rápida) y <strong>L2</strong> (mayor capacidad, algo más lenta, contiene todo lo de L1 y más). En procesadores multinúcleo, la caché puede ser <strong>privada</strong> por núcleo (AMD, en L2) o <strong>compartida</strong> entre todos (Intel, en L2) — cada esquema tiene sus ventajas y complejidades de diseño.</p>
-        <p><strong>Ejemplos:</strong> el Itanium de Intel tiene 3 niveles de caché con 300 millones de transistores (25 millones para el propio microprocesador). El ARM Cortex-A7 tiene 4 núcleos, cada uno con 2 cachés L1 (datos e instrucciones) y una L2 compartida.</p>
-      </div>
-    </section>
-
-    <!-- ===================== 3.3 PARADIGMAS ===================== -->
-    <section class="unit" id="s3">
-      <div class="sec-head">
-        <span class="num">3.3</span>
-        <div>
-          <h2>Paradigmas de diseño: CISC, RISC e híbridos</h2>
-          <p class="lede">Dos filosofías opuestas para construir un microprocesador, y cómo terminaron conviviendo.</p>
-        </div>
-      </div>
-      <div class="content wide">
-        <div class="grid-2">
-          <div class="card">
-            <h4>CISC — Complex Instruction Set Computers</h4>
-            <ul>
-              <li>ROM de control interna (microcódigo)</li>
-              <li>Instrucciones complejas: muchos ciclos por instrucción, pero un solo acceso a memoria</li>
-              <li>125 a 350 instrucciones, de tamaño variable (1 a 20 CPI)</li>
-              <li>~10 modos de direccionamiento</li>
-              <li>Compatibilidad con modelos anteriores</li>
-              <li>Ejemplos: Motorola 68000, Zilog Z80, familia Intel x86, AMD x86-64</li>
-            </ul>
-          </div>
-          <div class="card">
-            <h4>RISC — Reduced Instruction Set Computers</h4>
-            <ul>
-              <li>Sólo ~100 instrucciones sencillas y de uso frecuente</li>
-              <li>3 a 5 modos de direccionamiento</li>
-              <li>1 CPI por instrucción</li>
-              <li>Hardware más simple → permite duplicar unidades funcionales</li>
-              <li>Usa la técnica de <strong>pipeline</strong></li>
-              <li>Ejemplos: ARM, PowerPC, SPARC, MIPS, PA-RISC</li>
-            </ul>
-          </div>
-        </div>
-        <div class="callout"><strong>¿Por qué surgió RISC?</strong> Tras dos décadas de CISC, se observó que sólo el 25% de las instrucciones se usaba el 95% del tiempo; el 75% restante casi no se utilizaba. RISC apostó por programas más largos pero con instrucciones simples, compensando con un hardware más económico y eficiente.</div>
-
-        <h4>Pipeline (segmentación)</h4>
-        <p>Técnica que divide cada instrucción en <strong>segmentos o etapas</strong>, permitiendo que varias instrucciones se ejecuten de forma concurrente: en cada ciclo de reloj comienza una instrucción y termina otra. El tiempo total lo determina la etapa más lenta, por lo que hay que balancear los pasos. Más etapas no siempre mejora el rendimiento: aumenta la lógica de control necesaria.</p>
-
-        <figure>
-          <svg viewBox="0 0 500 140" width="100%" style="max-width:480px; margin:0 auto; display:block" xmlns="http://www.w3.org/2000/svg">
-            <g font-family="IBM Plex Mono" font-size="10" fill="#eaf1ec">
-              <text x="10" y="20">Sin pipeline:</text>
-              <rect x="120" y="8" width="40" height="20" fill="none" stroke="#93a89c"/><text x="140" y="22" text-anchor="middle" font-size="9">F1</text>
-              <rect x="160" y="8" width="40" height="20" fill="none" stroke="#93a89c"/><text x="180" y="22" text-anchor="middle" font-size="9">E1</text>
-              <rect x="200" y="8" width="40" height="20" fill="none" stroke="#93a89c"/><text x="220" y="22" text-anchor="middle" font-size="9">F2</text>
-              <rect x="240" y="8" width="40" height="20" fill="none" stroke="#93a89c"/><text x="260" y="22" text-anchor="middle" font-size="9">E2</text>
-
-              <text x="10" y="60">Con pipeline:</text>
-              <rect x="120" y="48" width="40" height="20" fill="none" stroke="#6fe7d4"/><text x="140" y="62" text-anchor="middle" font-size="9">F1</text>
-              <rect x="160" y="48" width="40" height="20" fill="none" stroke="#6fe7d4"/><text x="180" y="62" text-anchor="middle" font-size="9">E1</text>
-              <rect x="160" y="72" width="40" height="20" fill="none" stroke="#d6a24d"/><text x="180" y="86" text-anchor="middle" font-size="9">F2</text>
-              <rect x="200" y="72" width="40" height="20" fill="none" stroke="#d6a24d"/><text x="220" y="86" text-anchor="middle" font-size="9">E2</text>
-              <rect x="200" y="96" width="40" height="20" fill="none" stroke="#e2725b"/><text x="220" y="110" text-anchor="middle" font-size="9">F3</text>
-              <rect x="240" y="96" width="40" height="20" fill="none" stroke="#e2725b"/><text x="260" y="110" text-anchor="middle" font-size="9">E3</text>
-            </g>
-          </svg>
-          <figcaption>Con pipeline, la búsqueda (F) de una instrucción se superpone con la ejecución (E) de la anterior.</figcaption>
-        </figure>
-
-        <h4>Tecnología híbrida</h4>
-        <p>Desde el Pentium en adelante, los procesadores "híbridos" transforman internamente las instrucciones CISC en instrucciones RISC simples de longitud fija, que se ejecutan más rápido mediante unidades de ejecución RISC — relativizando el antiguo debate académico CISC vs. RISC.</p>
-
-        <h4>Arquitectura clásica vs. moderna</h4>
-        <div class="grid-2">
-          <div class="card"><h4>Von Neumann</h4><p style="margin:0">Una única memoria comparte instrucciones y datos, con buses compartidos → efecto "cuello de botella" (no se puede superponer el acceso a datos e instrucciones). Corresponde al paradigma CISC.</p></div>
-          <div class="card"><h4>Harvard</h4><p style="margin:0">Memoria de datos y de instrucciones separadas, con buses independientes: la CPU puede leer la próxima instrucción mientras opera con datos de la actual. Corresponde al paradigma RISC.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 3.4 FAMILIAS ===================== -->
-    <section class="unit" id="s4">
-      <div class="sec-head">
-        <span class="num">3.4</span>
-        <div>
-          <h2>Familias y fabricantes de microprocesadores</h2>
-          <p class="lede">x86 domina el escritorio; ARM domina el bolsillo.</p>
-        </div>
-      </div>
-      <div class="content wide">
-        <p>Una <span class="term">familia de microprocesadores</span> es un conjunto de modelos ligados por características comunes. Principales familias: Intel, ARM, Apple, VIA, AMD (y otros: Motorola, Sun, Compaq, IBM, Cyrix).</p>
-
-        <h3>3.4.1 — Familia x86</h3>
-        <p>Creada por Intel y licenciada a otras empresas (AMD, Cyrix, entre otras) en sus primeros modelos. Su set de instrucciones es <strong>CISC</strong>, con un núcleo común al que cada modelo nuevo agrega extensiones.</p>
-        <div class="grid-2">
-          <div class="card ok"><h4>Fortaleza</h4><p style="margin:0">Compatibilidad descendente: el software antiguo sigue funcionando al actualizar el procesador — la clave de su éxito comercial.</p></div>
-          <div class="card bad"><h4>Costo tecnológico</h4><p style="margin:0">Hay que mantener la arquitectura y el repertorio de instrucciones de modelos anteriores, arrastrando también sus fallos.</p></div>
-        </div>
-
-        <h3>3.4.2 — Microprocesadores ARM</h3>
-        <p><span class="term">ARM (Advanced RISC Machine)</span> es una arquitectura RISC de 32 y 64 bits desarrollada por ARM Holdings (hoy propiedad de NVIDIA, desde 2020), dominante en electrónica móvil e integrada, de bajo consumo y costo. Se usó inicialmente en las Acorn Archimedes (1987).</p>
-        <p>Gracias a su set de instrucciones simple, los procesadores ARM consumen poca energía, logrando un gran equilibrio entre potencia y duración de batería — usados en más del <strong>90% de los dispositivos móviles</strong>: PDA, tablets, celulares, videoconsolas, routers, discos duros, y placas como Raspberry Pi. Ejemplos: ARM7, Cortex-A53/A57, Apple A12/A13/A14 Bionic.</p>
-
-        <div class="photo-row">
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Intel_processor_chip.jpg" alt="Procesador Intel" onerror="this.closest('figure').style.display='none'"><figcaption>Procesador de la familia x86 (Intel)</figcaption></figure>
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/ARM_Cortex_chip.jpg" alt="Chip ARM" onerror="this.closest('figure').style.display='none'"><figcaption>Chip con arquitectura ARM</figcaption></figure>
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Raspberry_Pi_4_Model_B_-_Top.jpg" alt="Raspberry Pi" onerror="this.closest('figure').style.display='none'"><figcaption>Raspberry Pi, basada en ARM</figcaption></figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 3.5 FABRICACIÓN ===================== -->
-    <section class="unit" id="s5">
-      <div class="sec-head">
-        <span class="num">3.5</span>
-        <div>
-          <h2>Tecnologías de fabricación</h2>
-          <p class="lede">Quién fabrica los chips, de qué están hechos los transistores y por qué importan los nanómetros.</p>
-        </div>
-      </div>
-      <div class="content wide">
-        <h3>3.5.1 — Tipos de empresas fabricantes</h3>
-        <div class="grid-3">
-          <div class="card"><h4>Fundición</h4><p style="margin:0">No diseña, sólo fabrica para terceros. Ej: TSMC, UMC (Taiwán), SMIC (China).</p></div>
-          <div class="card"><h4>Fabless</h4><p style="margin:0">Diseña, ensambla y comercializa, pero terceriza la fabricación. Ej: NVIDIA, Xilinx.</p></div>
-          <div class="card"><h4>Fabricante integral</h4><p style="margin:0">Diseña, fabrica y comercializa todo. Ej: Intel, AMD, Texas Instruments, STMicroelectronics.</p></div>
-        </div>
-        <p>Es común que fabricantes integrales subcontraten parte de su producción a fundiciones (ej: AMD con TSMC), y que fabricantes como IBM Microelectronics ofrezcan servicios de fundición a empresas fabless.</p>
-
-        <h3>3.5.2 — Transistores y litografía</h3>
-        <p>El <span class="term">transistor</span>, inventado en los Bell Labs en 1947, es la unidad mínima de un procesador: modifica el flujo de corriente entre sus terminales para representar los 1 y 0 del sistema binario, actuando como interruptor. Millones de transistores trabajando juntos permiten que un procesador realice millones de operaciones por ciclo de reloj.</p>
-        <p>La <span class="term">litografía</span> indica, en nanómetros (nm), el tamaño de las funciones fabricadas en el semiconductor. Los primeros chips Intel (4004, 8008) rondaban los 10.000 nm (10 µm); hoy se fabrica en 7nm (Apple A12/A13, Kirin 980, Snapdragon 855) y hasta 5nm (Apple A14 Bionic).</p>
-        <div class="grid-2">
-          <div class="card"><h4>Ventajas de una mejor litografía</h4><ul><li>Mayor densidad de transistores</li><li>Menor consumo eléctrico</li></ul></div>
-          <div class="card"><h4>Y también</h4><ul><li>Mejor arquitectura (más tareas por ciclo)</li><li>Mayor velocidad posible</li></ul></div>
-        </div>
-
-        <h3>3.5.3 y 3.5.4 — FinFET y nuevas tecnologías</h3>
-        <p>Para pasar de 22nm a 16nm, la industria migró de transistores planos a <span class="term">FinFET</span> (transistor 3D), permitiendo llegar hasta los 5nm actuales. Como la Ley de Moore se acerca a los límites físicos del silicio, se investigan alternativas: transistores <strong>post-FinFET</strong> ("Gate-All-Around"), litografía <strong>ultravioleta extrema (EUV)</strong> de Samsung (reduce hasta un 50% el consumo), y materiales experimentales como <strong>nanotubos de carbono</strong> y disulfuro de molibdeno — ya se han fabricado transistores de laboratorio de hasta 1 átomo de tamaño.</p>
-
-        <div class="photo-row">
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Silicon_wafer.jpg" alt="Oblea de silicio" onerror="this.closest('figure').style.display='none'"><figcaption>Oblea de silicio</figcaption></figure>
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Semiconductor_fab_cleanroom.jpg" alt="Sala limpia de fabricación de semiconductores" onerror="this.closest('figure').style.display='none'"><figcaption>Sala limpia de una fábrica de semiconductores</figcaption></figure>
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/FinFET_transistor_structure.jpg" alt="Estructura FinFET" onerror="this.closest('figure').style.display='none'"><figcaption>Estructura de un transistor FinFET</figcaption></figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 3.6 CONEXION ===================== -->
-    <section class="unit" id="s6">
-      <div class="sec-head">
-        <span class="num">3.6</span>
-        <div>
-          <h2>Conexión microprocesador–placa madre</h2>
-          <p class="lede">Los tres esquemas de conexión física y cómo montar correctamente un procesador.</p>
-        </div>
-      </div>
-      <div class="content wide">
-        <h3>3.6.1 — Tipos de socket</h3>
-        <div class="grid-3">
-          <div class="card"><h4>PGA (Pin Grid Array)</h4><p style="margin:0">Pines metálicos en la base del procesador que se insertan en el zócalo; una palanca los ancla. Ej: AMD Ryzen (AM4).</p></div>
-          <div class="card"><h4>BGA (Ball Grid Array)</h4><p style="margin:0">Bolitas soldadas que hacen contacto con el zócalo. Ej: Intel para portátiles (BGA1440) y embebidos.</p></div>
-          <div class="card"><h4>LGA (Land Grid Array)</h4><p style="margin:0">Superficies de contacto lisas; los pines están en la placa madre. Ej: Intel LGA 1151/2066, AMD TR4.</p></div>
-        </div>
-
-        <h4>Algunos sockets Intel históricos y actuales</h4>
-        <div class="table-wrap">
-        <table>
-          <tr><th>Socket</th><th>Compatible con</th></tr>
-          <tr><td>PGA 478</td><td>Pentium 4, Celeron</td></tr>
-          <tr><td>LGA 775</td><td>Pentium 4, Celeron, Core 2</td></tr>
-          <tr><td>LGA 1366</td><td>i7 (primera generación)</td></tr>
-          <tr><td>LGA 1156 / 1155</td><td>i3, i5, i7, Xeon</td></tr>
-          <tr><td>LGA 2011</td><td>Xeon, i7 gama alta</td></tr>
-          <tr><td>LGA 1200 / 1700</td><td>Generaciones recientes de i9</td></tr>
-        </table>
-        </div>
-        <p class="lede" style="margin:0">El número del socket indica la cantidad de contactos (pines o superficies).</p>
-
-        <h3>3.6.2 — Placas con procesador integrado (soldado)</h3>
-        <div class="grid-2">
-          <div class="card ok"><h4>Ventajas</h4><ul><li>Formatos muy pequeños (MiniPC, HTPC)</li><li>Muy bajo consumo</li><li>Fácil de transportar e instalar</li><li>Más económicas que una placa ITX con procesador aparte</li></ul></div>
-          <div class="card bad"><h4>Desventajas</h4><ul><li>No se puede actualizar el procesador</li><li>Si falla, hay que cambiar toda la placa</li><li>Potencia reducida</li><li>Sin capacidad para GPU externa</li></ul></div>
-        </div>
-
-        <h3>3.6.3 — Montaje del microprocesador</h3>
-        <p>Se realiza al armar un equipo nuevo, al reemplazar un procesador defectuoso o por uno de mayor rendimiento (compatible con el socket), o al extraerlo para limpieza (recomendado cada 6 meses aproximadamente).</p>
-        <ol class="steps">
-          <li>Verificar que el socket sea el correcto; alinear el procesador según la marca de orientación.</li>
-          <li>Presionar suavemente para asentarlo, y sujetarlo con los elementos de anclaje de la placa.</li>
-          <li>Colocar el disipador y el cooler con su alimentación eléctrica.</li>
-          <li>Conectar la alimentación eléctrica del microprocesador (ATX12V).</li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- ===================== 3.7 REFRIGERACION ===================== -->
-    <section class="unit" id="s7">
-      <div class="sec-head">
-        <span class="num">3.7</span>
-        <div>
-          <h2>Sistemas de refrigeración y pasta térmica</h2>
-          <p class="lede">El componente que más calor disipa necesita, también, el sistema de enfriamiento más cuidado.</p>
-        </div>
-      </div>
-      <div class="content wide">
-        <h3>3.7.1 — Temperatura de los microprocesadores</h3>
-        <div class="grid-3">
-          <div class="card"><h4>PC de escritorio</h4><p style="margin:0">30–65°C en uso normal; 70–95°C en cargas exigentes (juegos).</p></div>
-          <div class="card"><h4>Notebook</h4><p style="margin:0">40–80°C durante una jornada laboral media (espacio reducido).</p></div>
-          <div class="card"><h4>Dispositivo móvil</h4><p style="margin:0">30–45°C como máximo habitual.</p></div>
-        </div>
-        <div class="callout"><strong>Umbral de alerta:</strong> nunca debería superar los 100°C. Entre 80–85°C sin estar bajo carga exigente ya se considera una mala temperatura, aunque los procesadores modernos toleran picos cortos de 100–103°C sin daño inmediato (aunque acortan su vida útil).</div>
-        <p><strong>Causas de temperaturas altas:</strong> alta carga de procesamiento, overclocking, ventilador defectuoso, acumulación de polvo, problemas de ventilación del gabinete.</p>
-        <div class="callout cyan"><strong>Thermal Throttling:</strong> mecanismo de protección que reduce la frecuencia (o apaga el equipo, en el límite) cuando la temperatura sube demasiado, sacrificando rendimiento para evitar daños.</div>
-
-        <h3>3.7.2 — Tipos de refrigeración según el equipo</h3>
-        <div class="table-wrap">
-        <table>
-          <tr><th>Tipo de equipo</th><th>Refrigeración típica</th></tr>
-          <tr><td>PC media/baja gama</td><td>Aire (pasiva: sólo disipador / activa: disipador + cooler) o líquida (watercooling)</td></tr>
-          <tr><td>Portátiles y All in One</td><td>Heatpipes (con disipadores, con o sin coolers)</td></tr>
-          <tr><td>Embebidos y desechables</td><td>Ninguna, o aire pasivo (difusor térmico o disipador)</td></tr>
-          <tr><td>Alto rendimiento / gaming</td><td>Heatpipes activos, líquida, o criogenia</td></tr>
-          <tr><td>Experimental / laboratorio</td><td>Metal líquido, termoeléctrica (Peltier), cambio de fase, viento iónico</td></tr>
-        </table>
-        </div>
-
-        <h4>Refrigeración por aire</h4>
-        <p>Un <strong>disipador</strong> (cobre o aluminio) en contacto con el procesador aumenta la superficie de contacto con el aire mediante láminas; uno o más <strong>ventiladores</strong> remueven el calor absorbido. A mayor caudal de aire, mejor enfriamiento pero más ruido — siempre hay que buscar un compromiso. Formas típicas: monobloque, en torre, en abanico.</p>
-
-        <h4>Refrigeración líquida (watercooling)</h4>
-        <p>Más fiable pero más compleja, con mantenimiento periódico. Componentes: depósito, bloque de agua (sobre el componente a enfriar), bomba, radiador (intercambiador), ventiladores y mangueras. Tipos: <strong>AIO</strong> (todo en uno, listo para instalar) y <strong>bucle personalizado</strong>. Temperaturas típicas: desde 5°C en reposo hasta 60°C con overclocking fuerte.</p>
-
-        <h4>Refrigeración con heatpipes</h4>
-        <p>Tubo de alta conductividad que combina conducción térmica con un cambio de fase líquido-vapor, muy eficiente. El chip calienta un extremo (evapora el líquido), el vapor viaja y se enfría en las aletas, se condensa y regresa — un ciclo continuo. Existen <strong>pasivos</strong> (silenciosos, sólo tubos y disipador) y <strong>activos</strong> (con ventilador, para alto rendimiento). Es el sistema más usado en notebooks: reduce ruido, consumo y permite equipos más delgados.</p>
-
-        <h4>Sistemas experimentales</h4>
-        <div class="grid-2">
-          <div class="card"><h4>Criogenia</h4><p style="margin:0">Nitrógeno líquido (-196°C) o hielo seco (-78°C) aplicados directamente. Sólo para pruebas de laboratorio de overclocking extremo.</p></div>
-          <div class="card"><h4>Termoeléctrica (Peltier)</h4><p style="margin:0">Usa el efecto Peltier: al aplicar voltaje entre dos materiales, un lado se enfría y el otro se calienta. Requiere refrigeración complementaria.</p></div>
-        </div>
-
-        <h3>3.7.3 — Pasta térmica</h3>
-        <p>Sustancia que mejora la transmisión de calor entre el chip y el sistema de enfriamiento, rellenando las imperfecciones microscópicas de contacto. Tipos: <strong>cerámicas</strong> (silicona + óxido de zinc, 0,7–0,9 W/m·K, económicas) y <strong>metálicas</strong> (plata, oro-cobre, diamante; 2–3 W/m·K, más caras y mejores conductoras).</p>
-        <h4>Procedimiento para cambiar la pasta térmica</h4>
-        <ol class="steps">
-          <li>Elegir la pasta térmica adecuada.</li>
-          <li>Limpiar la superficie del microprocesador y el disipador con alcohol concentrado (70-90%), evitando tocarla luego con los dedos.</li>
-          <li>Aplicar una capa fina y pareja de pasta (usando guantes de látex sin polvo), sin dejar burbujas.</li>
-          <li>Instalar el disipador con una leve inclinación y presión uniforme; conectar el cooler y su alimentación.</li>
-          <li>Encender, ingresar a la BIOS y verificar que la temperatura ronde los 40°C.</li>
-        </ol>
-
-        <h3>3.7.10 — TDP (Thermal Design Power)</h3>
-        <p>El <span class="term">TDP</span> indica, en watts, la cantidad máxima de calor esperada de un componente en uso intenso — no es lo mismo que el consumo eléctrico. Permite elegir el sistema de refrigeración apropiado. Intel mide el TDP después del período de Turbo Boost (~30 seg); AMD mide el máximo real bajo carga total, incluyendo picos boost.</p>
-        <div class="table-wrap">
-        <table>
-          <tr><th>Categoría</th><th>TDP típico</th></tr>
-          <tr><td>Workstation</td><td>165–280 W</td></tr>
-          <tr><td>Gama alta escritorio</td><td>85–125 W</td></tr>
-          <tr><td>Escritorio básico</td><td>35–65 W</td></tr>
-          <tr><td>Portátiles</td><td>15–45 W</td></tr>
-          <tr><td>Dispositivos móviles</td><td>3–10 W</td></tr>
-        </table>
-        </div>
-
-        <div class="photo-row">
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/CPU_heatsink_and_fan.jpg" alt="Disipador y cooler" onerror="this.closest('figure').style.display='none'"><figcaption>Disipador + cooler (refrigeración por aire)</figcaption></figure>
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/AIO_liquid_cooler.jpg" alt="Refrigeración líquida AIO" onerror="this.closest('figure').style.display='none'"><figcaption>Kit de refrigeración líquida AIO</figcaption></figure>
-          <figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Thermal_paste_application.jpg" alt="Aplicación de pasta térmica" onerror="this.closest('figure').style.display='none'"><figcaption>Aplicación de pasta térmica</figcaption></figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================== 3.8 OVERCLOCKING ===================== -->
-    <section class="unit" id="s8">
-      <div class="sec-head">
-        <span class="num">3.8</span>
-        <div>
-          <h2>Overclocking</h2>
-          <p class="lede">Exprimir el procesador más allá de lo que garantiza el fabricante — con sus beneficios y sus riesgos.</p>
-        </div>
-      </div>
-      <div class="content wide">
-        <h3>3.8.1 — Cálculo de la frecuencia del procesador</h3>
-        <div class="callout cyan" style="text-align:center; font-family:var(--serif-mono); font-size:16px">
-          Frecuencia del procesador = Bus frontal (FSB/QPI/HT) × Multiplicador
-        </div>
-        <p>Ejemplo: un procesador AMD Athlon XP con multiplicador x5 y bus frontal de 166 MHz alcanza 830 MHz. Otro ejemplo: base de 100 MHz y multiplicador 35 → 3,5 GHz por núcleo.</p>
-
-        <h3>3.8.2 — ¿Qué es el overclocking?</h3>
-        <p><span class="term">Overclocking</span> es la técnica de aumentar la frecuencia del reloj de un componente para obtener mayor rendimiento, por encima de las especificaciones del fabricante. Intel identifica sus procesadores desbloqueados con la letra <strong>K</strong>; en AMD, toda la gama FX viene desbloqueada de fábrica.</p>
-
-        <h3>3.8.3 — Técnicas</h3>
-        <div class="grid-3">
-          <div class="card"><h4>Aumentar el FSB</h4><p style="margin:0">Sube también la frecuencia de otros buses (PCI/AGP) — riesgo de inestabilidad si no la soportan.</p></div>
-          <div class="card"><h4>Aumentar el multiplicador</h4><p style="margin:0">No afecta a otros buses; es la técnica más segura y habitual en procesadores desbloqueados.</p></div>
-          <div class="card"><h4>Ambos combinados</h4><p style="margin:0">Sólo disponible en algunos procesadores AMD.</p></div>
-        </div>
-        <p>Procedimiento general: acceder a BIOS/UEFI, ubicar los parámetros de frecuencia del procesador (nombres variables según fabricante), modificar el valor de a pequeños incrementos, guardar y reiniciar, verificando estabilidad en cada paso.</p>
-
-        <h3>3.8.4 — Beneficios, desventajas y consecuencias</h3>
-        <div class="grid-2">
-          <div class="card ok"><h4>Beneficio</h4><p style="margin:0">Mayor capacidad de procesamiento sin cambiar de hardware.</p></div>
-          <div class="card bad"><h4>Costos</h4><ul><li>Mayor calor y consumo eléctrico</li><li>Requiere refrigeración específica (más cara)</li><li>Acorta la vida útil del procesador</li><li>Puede generar inestabilidad del equipo</li></ul></div>
-        </div>
-        <table>
-          <tr><th>Síntoma tras el overclock</th><th>Qué hacer</th></tr>
-          <tr><td>El sistema no arranca</td><td>Resetear la BIOS a valores de fábrica</td></tr>
-          <tr><td>El sistema emite pitidos</td><td>Consultar el código en el manual y resetear la BIOS</td></tr>
-          <tr><td>Arranca pero se congela bajo carga</td><td>Reducir FSB/multiplicador o mejorar la refrigeración</td></tr>
-        </table>
-
-        <h3>3.8.5 — Qué se necesita para hacer overclocking</h3>
-        <ul>
-          <li>Procesador desbloqueado (K en Intel; toda la gama FX en AMD)</li>
-          <li>Placa madre con chipset preparado (AMD lo permite en sus 3 gamas; Intel sólo en placas de alta gama)</li>
-          <li>Sistema de refrigeración especial (torre potente o kit AIO)</li>
-          <li>Pasta térmica de mayor calidad</li>
-          <li>Software de monitoreo (ej: CPU-Z) para vigilar velocidad de reloj y voltaje</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- ===================== Q&A ===================== -->
-    <section class="unit" id="s9">
-      <div class="sec-head">
-        <span class="num">✎</span>
-        <div>
-          <h2>Preguntas para la clase</h2>
-          <p class="lede">Espacio de participación: usá el modo "pregunta al azar" para proyectar una consigna a la vez.</p>
-        </div>
-      </div>
-
-      <div class="content wide">
-        <div class="qa-toolbar">
-          <button class="btn" id="btnRandom">Nueva pregunta al azar</button>
-          <button class="btn secondary" id="btnReset">Reiniciar puntaje</button>
-          <span class="score-pill">Aciertos de la clase: <b id="scoreVal">0</b> / <span id="scoreTotal">0</span></span>
-        </div>
-
-        <div class="spotlight" id="spotlight">
-          <span class="cat">Elegí una consigna</span>
-          <p class="qtext">Tocá "Nueva pregunta al azar" para empezar la ronda de preguntas con el curso.</p>
-        </div>
-
-        <h3 style="margin-top:40px">Para debatir en grupo</h3>
-        <div class="debate-list" id="debateList"></div>
-      </div>
-    </section>
-
-    <footer>
-      Instalación y Organización de la Computadora — Tecnicatura en Informática de Gestión (Plan 2007) · Facultad Regional Orán, UNSa · Material de cátedra: Ing. Dora Mendoza
-    </footer>
-  </main>
-</div>
-
-<script>
-/* ---------------- scrollspy ---------------- */
-const links = document.querySelectorAll('nav.toc a');
-const sections = [...links].map(l => document.querySelector(l.getAttribute('href')));
-function onScroll(){
-  let idx = 0;
-  const y = window.scrollY + 140;
-  sections.forEach((s,i)=>{ if(s && s.offsetTop <= y) idx = i; });
-  links.forEach(l=>l.classList.remove('active'));
-  if(links[idx]) links[idx].classList.add('active');
-}
-window.addEventListener('scroll', onScroll);
-onScroll();
-
-/* ---------------- mobile nav toggle ---------------- */
-const mobileToggle = document.getElementById('mobileToggle');
-if(mobileToggle){
-  mobileToggle.addEventListener('click', ()=>{
-    document.getElementById('sidebar').classList.toggle('open');
-  });
-}
-
-/* ---------------- Q&A data ---------------- */
-const quiz = [
-  {cat:"CPU", q:"¿Cómo se llama a un chip que contiene la CPU y también los periféricos y otros componentes del sistema?", opts:["Multiprocesador","Sistema en un chip (SoC)","Coprocesador","Chipset"], correct:1,
-   exp:"Un SoC (System on a Chip) integra la CPU junto con periféricos y otros componentes en un solo circuito integrado."},
-  {cat:"Componentes", q:"¿Cuál es la función de la Unidad de Control (UC) dentro del procesador?", opts:["Realizar operaciones aritméticas","Secuenciar y ordenar la ejecución de las instrucciones","Almacenar datos permanentemente","Enfriar el procesador"], correct:1,
-   exp:"La Unidad de Control interpreta cada instrucción y genera las señales de control para que se ejecute en el orden correcto."},
-  {cat:"Escalas de integración", q:"¿Qué escala de integración corresponde a los microprocesadores modernos como el Core i9?", opts:["SSI","MSI","LSI","GLSI"], correct:3,
-   exp:"Los procesadores actuales, como el Core i9, corresponden a la escala GLSI (Giga Large Scale Integration)."},
-  {cat:"Evolución", q:"¿Cuál fue el primer microprocesador completo montado en un solo circuito integrado?", opts:["Intel Core i7","Intel 4004","Intel Pentium","AMD Athlon"], correct:1,
-   exp:"En 1971, Intel logró montar el primer microprocesador completo en un CI: el 4004, con 2250 transistores."},
-  {cat:"Ley de Moore", q:"¿Qué establece aproximadamente la Ley de Moore?", opts:["Que el precio de los chips baja cada año","Que el número de transistores en un CI se duplica cada dos años aproximadamente","Que la velocidad del reloj se duplica cada año","Que el consumo eléctrico se reduce a la mitad cada mes"], correct:1,
-   exp:"La Ley de Moore (1965) establece que la cantidad de transistores en un circuito integrado se duplica aproximadamente cada dos años."},
-  {cat:"Caché", q:"¿Por qué se usa memoria caché entre el procesador y la RAM?", opts:["Para ahorrar espacio en el gabinete","Porque la RAM es mucho más lenta que el procesador","Porque la RAM no es volátil","Para reemplazar al disco duro"], correct:1,
-   exp:"La caché compensa la diferencia de velocidad entre el procesador (muy rápido) y la RAM (comparativamente lenta), mejorando el rendimiento general."},
-  {cat:"Caché", q:"En la conexión en paralelo entre caché y memoria principal, ¿qué ventaja tiene frente a la conexión en serie?", opts:["Usa menos energía","Si falla la caché, no hay penalización de tiempo porque la RAM ya venía buscando el dato","Es más barata de implementar","No necesita bus"], correct:1,
-   exp:"En la conexión en paralelo, la petición va simultáneamente a caché y RAM; si la caché falla, la RAM ya viene trabajando y no se pierde tiempo extra."},
-  {cat:"CISC vs RISC", q:"¿Cuál es una característica típica del paradigma CISC?", opts:["Instrucciones simples y de 1 CPI cada una","Instrucciones complejas que pueden requerir hasta 20 CPI","Sin ROM de control","Sólo 3 a 5 modos de direccionamiento"], correct:1,
-   exp:"CISC usa instrucciones complejas que pueden tardar entre 1 y 20 ciclos de procesamiento (CPI), pero requieren un solo acceso a memoria."},
-  {cat:"CISC vs RISC", q:"¿Qué técnica de implementación es característica de los procesadores RISC?", opts:["Microcódigo extendido","Pipeline (segmentación)","ROM de control obligatoria","Instrucciones de longitud variable"], correct:1,
-   exp:"El paradigma RISC aplica la técnica de pipeline, ejecutando de forma concurrente distintas etapas de varias instrucciones."},
-  {cat:"Arquitecturas", q:"¿Qué arquitectura usa memorias separadas para datos e instrucciones, evitando el 'cuello de botella' de Von Neumann?", opts:["Arquitectura Harvard","Arquitectura x86","Arquitectura CISC clásica","Arquitectura de bus único"], correct:0,
-   exp:"La arquitectura Harvard usa buses y memorias independientes para datos e instrucciones, permitiendo accesos simultáneos."},
-  {cat:"Familias", q:"¿Qué arquitectura domina más del 90% de los dispositivos móviles actuales?", opts:["x86","ARM","PowerPC","SPARC"], correct:1,
-   exp:"ARM, gracias a su bajo consumo, domina ampliamente el mercado de dispositivos móviles."},
-  {cat:"Fabricación", q:"¿Qué tipo de empresa diseña y comercializa chips pero terceriza su fabricación a una fundición?", opts:["Fabless","Fundición","Fabricante integral","OEM"], correct:0,
-   exp:"Una empresa fabless (como NVIDIA) diseña y comercializa circuitos integrados, pero encarga su fabricación a una fundición como TSMC."},
-  {cat:"Litografía", q:"¿Qué significa que un procesador esté fabricado con tecnología de '5 nm'?", opts:["Que mide 5 nm de largo","Que sus componentes electrónicos se fabrican en escalas de 5 nanómetros","Que consume 5 nanovatios","Que tiene 5 núcleos"], correct:1,
-   exp:"La litografía en nanómetros indica el tamaño de las funciones fabricadas en el semiconductor; a menor número, mayor densidad de transistores."},
-  {cat:"Sockets", q:"¿Qué tipo de socket usa bolitas soldadas al procesador para hacer contacto con el zócalo?", opts:["PGA","BGA","LGA","ATX"], correct:1,
-   exp:"BGA (Ball Grid Array) usa bolitas soldadas; es común en CPU de portátiles y equipos embebidos."},
-  {cat:"Placas integradas", q:"¿Cuál es una desventaja de una placa madre con procesador soldado (integrado)?", opts:["Consume mucha energía","No se puede actualizar el procesador","Es muy grande","No admite RAM"], correct:1,
-   exp:"En una placa con procesador integrado, si éste falla o se quiere actualizar, hay que cambiar toda la placa."},
-  {cat:"Refrigeración", q:"¿Qué sistema de refrigeración es el más común en notebooks?", opts:["Refrigeración líquida AIO","Heatpipes","Criogenia con nitrógeno líquido","Refrigeración termoeléctrica"], correct:1,
-   exp:"Las notebooks usan mayormente heatpipes para transportar el calor del procesador y el chipset lejos de ellos, con o sin cooler adicional."},
-  {cat:"Pasta térmica", q:"¿Para qué se usa la pasta térmica entre el procesador y el disipador?", opts:["Para aislar eléctricamente el procesador","Para mejorar la transmisión de calor rellenando imperfecciones de contacto","Para limpiar el polvo","Para sujetar el disipador"], correct:1,
-   exp:"La pasta térmica rellena los huecos microscópicos entre las superficies de contacto, mejorando la transferencia de calor."},
-  {cat:"TDP", q:"¿A qué se refiere el TDP de un procesador?", opts:["Al consumo eléctrico exacto en cualquier momento","A la cantidad máxima de calor esperada en uso intenso","A la temperatura mínima de arranque","Al voltaje de alimentación"], correct:1,
-   exp:"El TDP (Thermal Design Power) indica el calor máximo esperado del componente en un escenario de uso intenso, no el consumo eléctrico."},
-  {cat:"Overclocking", q:"¿Cuál de estas técnicas de overclocking es la más segura, al no afectar otros buses?", opts:["Aumentar el FSB","Aumentar el multiplicador","Aumentar el voltaje sin límite","Quitar el disipador"], correct:1,
-   exp:"Aumentar el multiplicador no afecta a otros buses (como PCI o AGP), a diferencia de aumentar el FSB."}
-];
-
-const debate = [
-  "¿Por qué creen que, a pesar de las ventajas técnicas de RISC, la familia x86 (CISC) sigue dominando las PC de escritorio?",
-  "Si la Ley de Moore se está acercando a sus límites físicos, ¿qué caminos les parecen más prometedores para seguir mejorando el rendimiento: nuevos materiales, nuevas arquitecturas, o software más eficiente?",
-  "¿Qué ventajas y qué riesgos reales tiene el overclocking para un usuario que arma su propia PC gamer?",
-  "Comparando los sistemas de refrigeración por aire y líquida, ¿en qué escenarios recomendarían cada uno y por qué?",
-  "¿Por qué ARM eligió priorizar el bajo consumo sobre la máxima potencia bruta, y qué consecuencias tuvo esa decisión en el mercado de dispositivos móviles?"
-];
-
-let score = 0, total = 0;
-document.getElementById('scoreTotal').textContent = quiz.length;
-
-let bag = [];
-function refillBag(){ bag = quiz.map((_,i)=>i); }
-refillBag();
-
-function renderSpotlight(i){
-  const item = quiz[i];
-  const box = document.getElementById('spotlight');
-  box.innerHTML = `
+      function renderSpotlight(i) {
+        const item = quiz[i];
+        const box = document.getElementById("spotlight");
+        box.innerHTML = `
     <span class="cat">${item.cat}</span>
     <p class="qtext">${item.q}</p>
     <div class="options">
-      ${item.opts.map((o,oi)=>`<button class="opt" data-oi="${oi}">${o}</button>`).join('')}
+      ${item.opts.map((o, oi) => `<button class="opt" data-oi="${oi}">${o}</button>`).join("")}
     </div>
     <div class="explain" id="explainBox">${item.exp}</div>
   `;
-  box.querySelectorAll('.opt').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const chosen = parseInt(btn.dataset.oi);
-      box.querySelectorAll('.opt').forEach(b=>b.disabled = true);
-      if(chosen === item.correct){
-        btn.classList.add('correct');
-        score++;
-      } else {
-        btn.classList.add('incorrect');
-        box.querySelectorAll('.opt')[item.correct].classList.add('correct');
+        box.querySelectorAll(".opt").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const chosen = parseInt(btn.dataset.oi);
+            box.querySelectorAll(".opt").forEach((b) => (b.disabled = true));
+            if (chosen === item.correct) {
+              btn.classList.add("correct");
+              score++;
+            } else {
+              btn.classList.add("incorrect");
+              box
+                .querySelectorAll(".opt")
+                [item.correct].classList.add("correct");
+            }
+            total++;
+            document.getElementById("scoreVal").textContent = score;
+            document.getElementById("explainBox").classList.add("show");
+          });
+        });
       }
-      total++;
-      document.getElementById('scoreVal').textContent = score;
-      document.getElementById('explainBox').classList.add('show');
-    });
-  });
-}
 
-document.getElementById('btnRandom').addEventListener('click', ()=>{
-  if(bag.length === 0) refillBag();
-  const pick = Math.floor(Math.random()*bag.length);
-  const idx = bag.splice(pick,1)[0];
-  renderSpotlight(idx);
-});
+      document.getElementById("btnRandom").addEventListener("click", () => {
+        if (bag.length === 0) refillBag();
+        const pick = Math.floor(Math.random() * bag.length);
+        const idx = bag.splice(pick, 1)[0];
+        renderSpotlight(idx);
+      });
 
-document.getElementById('btnReset').addEventListener('click', ()=>{
-  score = 0; total = 0;
-  document.getElementById('scoreVal').textContent = 0;
-});
+      document.getElementById("btnReset").addEventListener("click", () => {
+        score = 0;
+        total = 0;
+        document.getElementById("scoreVal").textContent = 0;
+      });
 
-/* debate list */
-const debateList = document.getElementById('debateList');
-debate.forEach(d=>{
-  const el = document.createElement('div');
-  el.className = 'debate-item';
-  el.textContent = d;
-  debateList.appendChild(el);
-});
-</script>
-</body>
+      /* debate list */
+      const debateList = document.getElementById("debateList");
+      debate.forEach((d) => {
+        const el = document.createElement("div");
+        el.className = "debate-item";
+        el.textContent = d;
+        debateList.appendChild(el);
+      });
+    </script>
+  </body>
 </html>
